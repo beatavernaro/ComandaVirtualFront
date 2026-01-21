@@ -1,0 +1,55 @@
+<div class="start-container">
+  <mat-card class="start-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>restaurant</mat-icon>
+        Luderia Digital
+      </mat-card-title>
+      <mat-card-subtitle>Inicie sua comanda digital</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Seu nome</mat-label>
+          <input matInput formControlName="nomeCliente" placeholder="Digite seu nome" />
+          <mat-icon matSuffix>person</mat-icon>
+          @if (form.get('nomeCliente')?.invalid && form.get('nomeCliente')?.touched) {
+            <mat-error>{{ getErrorMessage('nomeCliente') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Celular</mat-label>
+          <input matInput formControlName="celular" placeholder="11987654321" type="tel" />
+          <mat-icon matSuffix>phone</mat-icon>
+          @if (form.get('celular')?.invalid && form.get('celular')?.touched) {
+            <mat-error>{{ getErrorMessage('celular') }}</mat-error>
+          }
+        </mat-form-field>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button
+        mat-raised-button
+        color="primary"
+        class="full-width start-button"
+        (click)="onSubmit()"
+        [disabled]="loading"
+      >
+        @if (loading) {
+          <ng-container>
+            <mat-icon>hourglass_empty</mat-icon>
+            Criando comanda...
+          </ng-container>
+        } @else {
+          <ng-container>
+            <mat-icon>play_arrow</mat-icon>
+            Iniciar Comanda
+          </ng-container>
+        }
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

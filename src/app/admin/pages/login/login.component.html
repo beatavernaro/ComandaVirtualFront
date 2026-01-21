@@ -1,0 +1,70 @@
+<div class="login-container">
+  <div class="login-wrapper">
+    <mat-card class="login-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>admin_panel_settings</mat-icon>
+          Área Administrativa
+        </mat-card-title>
+        <mat-card-subtitle>Luderia Digital - Painel de Controle</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email" placeholder="admin@luderia.com" />
+            <mat-icon matSuffix>email</mat-icon>
+            @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+              <mat-error>{{ getErrorMessage('email') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Senha</mat-label>
+            <input
+              matInput
+              formControlName="password"
+              [type]="hidePassword ? 'password' : 'text'"
+              placeholder="Digite sua senha"
+            />
+            <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+              <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+              <mat-error>{{ getErrorMessage('password') }}</mat-error>
+            }
+          </mat-form-field>
+        </form>
+
+        <div class="demo-credentials">
+          <p><strong>Credenciais de demonstração:</strong></p>
+          <p>Email: admin@luderia.com</p>
+          <p>Senha: admin123</p>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button
+          mat-raised-button
+          color="primary"
+          class="full-width login-button"
+          (click)="onSubmit()"
+          [disabled]="loading"
+        >
+          @if (loading) {
+            <ng-container>
+              <mat-icon>hourglass_empty</mat-icon>
+              Entrando...
+            </ng-container>
+          } @else {
+            <ng-container>
+              <mat-icon>login</mat-icon>
+              Entrar
+            </ng-container>
+          }
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
