@@ -18,27 +18,11 @@ jobs:
       id-token: write
       contents: read
 
-    # 🔴 PONTO CRÍTICO: impede o Oryx de rebuildar com Node 18
-    env:
-      SKIP_APP_BUILD: true
-
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
           lfs: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Angular app
-        run: npm run build
 
       # 🔐 OIDC (mantido como o Azure criou)
       - name: Install OIDC Client from Core Package
