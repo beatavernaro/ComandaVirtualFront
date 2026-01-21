@@ -170,8 +170,9 @@ export class CardapioComponent implements OnInit {
         if (!busca?.trim()) {
           return produtos;
         }
+        const buscaNormalizada = this.removerAcentos(busca.toLowerCase());
         return produtos.filter((produto) =>
-          produto.nome.toLowerCase().includes(busca.toLowerCase()),
+          this.removerAcentos(produto.nome.toLowerCase()).includes(buscaNormalizada),
         );
       }),
     );
@@ -241,5 +242,12 @@ export class CardapioComponent implements OnInit {
       style: 'currency',
       currency: 'BRL',
     }).format(preco);
+  }
+
+  private removerAcentos(str: string): string {
+    return str
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
   }
 }
