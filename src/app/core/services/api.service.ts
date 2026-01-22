@@ -30,6 +30,28 @@ export class ApiService {
     return this.http.delete<T>(`${this.baseUrl}/${endpoint}`).pipe(catchError(this.handleError));
   }
 
+  // Métodos específicos para sessões
+  createSession<T>(sessionData: any): Observable<T> {
+    return this.post<T>('sessions', sessionData);
+  }
+
+  updateSession<T>(sessionId: string, sessionData: any): Observable<T> {
+    return this.put<T>(`sessions/${sessionId}`, sessionData);
+  }
+
+  getSessionByPhone<T>(celular: string): Observable<T> {
+    return this.get<T>(`sessions/phone/${celular}`);
+  }
+
+  // Métodos específicos para comandas
+  getComandaBySession<T>(sessionId: string): Observable<T> {
+    return this.get<T>(`comandas/session/${sessionId}`);
+  }
+
+  syncComanda<T>(comandaData: T): Observable<T> {
+    return this.post<T>('comandas/sync', comandaData);
+  }
+
   private handleError(error: HttpErrorResponse) {
     console.error('API Error:', error);
     return throwError(() => error);

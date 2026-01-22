@@ -320,3 +320,12 @@ textarea {
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
   }
 }
+
+// Fix dialog background
+.mat-mdc-dialog-container {
+  background: white !important;
+}
+
+.mat-mdc-dialog-surface {
+  background: white !important;
+}

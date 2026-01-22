@@ -4,6 +4,7 @@ import { map } from 'rxjs/operators';
 import { Comanda } from '../../shared/models/comanda.model';
 import { ItemComanda } from '../../shared/models/item-comanda.model';
 import { ApiService } from './api.service';
+import { SessionService, SessionData } from './session.service';
 
 @Injectable({
   providedIn: 'root',
@@ -19,13 +20,36 @@ export class ComandaService {
   private comandasMock: Comanda[] = [];
   private itensMock: ItemComanda[] = [];
 
-  constructor(private apiService: ApiService) {
+  constructor(
+    private apiService: ApiService,
+    private sessionService: SessionService,
+  ) {
+    this.initializeService();
+  }
+
+  private initializeService(): void {
+    // Assinar as mudanças de sessão
+    this.sessionService.session$.subscribe((session) => {
+      if (session?.comandaId) {
+        this.carregarComandaPorId(session.comandaId);
+      } else if (!session) {
+        // Sessão encerrada, limpar comanda atual
+        this.comandaAtualSubject.next(null);
+        this.itensComandaSubject.next([]);
+      }
+    });
+
+    // Carregar comanda existente se houver
     this.carregarComandaAtual();
   }
 
   criarComanda(nomeCliente: string, celular: string): Observable<Comanda> {
+    // Primeiro criar a sessão
+    const session = this.sessionService.createSession(nomeCliente, celular);
+
     const novaComanda: Comanda = {
       id: this.generateId(),
+      sessionId: session.sessionId,
       nomeCliente,
       celular,
       status: 'ABERTA',
@@ -33,10 +57,13 @@ export class ComandaService {
       dataCriacao: new Date(),
     };
 
-    // Mock implementation
+    // Salvar a comanda
     this.comandasMock.push(novaComanda);
     this.salvarComandaLocal(novaComanda);
     this.comandaAtualSubject.next(novaComanda);
+
+    // Vincular comanda à sessão
+    this.sessionService.setComandaId(novaComanda.id);
 
     return of(novaComanda);
     // return this.apiService.post<Comanda>('comandas', novaComanda);
@@ -44,15 +71,16 @@ export class ComandaService {
 
   adicionarItem(item: Omit<ItemComanda, 'id' | 'comandaId'>): Observable<ItemComanda> {
     let comandaAtual = this.comandaAtualSubject.value;
-    console.log('Estado atual da comanda:', comandaAtual);
+    const session = this.sessionService.getCurrentSession();
 
-    // Se não há comanda ativa, cria uma temporária
-    if (!comandaAtual) {
-      console.log('Criando comanda temporária...');
+    // Se não há comanda ativa mas há sessão, tentar criar comanda
+    if (!comandaAtual && session) {
+      console.log('Criando comanda baseada na sessão atual...');
       const comandaTemp: Comanda = {
         id: this.generateId(),
-        nomeCliente: 'Cliente',
-        celular: '',
+        sessionId: session.sessionId,
+        nomeCliente: session.nomeCliente,
+        celular: session.celular,
         status: 'ABERTA',
         total: 0,
         dataCriacao: new Date(),
@@ -61,8 +89,11 @@ export class ComandaService {
       this.comandasMock.push(comandaTemp);
       this.salvarComandaLocal(comandaTemp);
       this.comandaAtualSubject.next(comandaTemp);
+      this.sessionService.setComandaId(comandaTemp.id);
       comandaAtual = comandaTemp;
-      console.log('Comanda temporária criada:', comandaTemp);
+      console.log('Comanda criada baseada na sessão:', comandaTemp);
+    } else if (!comandaAtual) {
+      throw new Error('Não é possível adicionar item sem sessão ativa');
     }
 
     // Verifica se já existe um item com o mesmo nome
@@ -233,6 +264,62 @@ export class ComandaService {
       comandaAtual.total = total;
       this.comandaAtualSubject.next({ ...comandaAtual });
     }
+  }
+
+  /**
+   * Carregar comanda específica por ID
+   */
+  private carregarComandaPorId(comandaId: string): void {
+    const comanda = this.comandasMock.find((c) => c.id === comandaId);
+    if (comanda) {
+      this.comandaAtualSubject.next(comanda);
+      this.atualizarItens();
+    }
+  }
+
+  /**
+   * Verificar se há sessão ativa
+   */
+  hasActiveSession(): boolean {
+    return this.sessionService.hasActiveSession();
+  }
+
+  /**
+   * Obter dados da sessão atual
+   */
+  getCurrentSession(): SessionData | null {
+    return this.sessionService.getCurrentSession();
+  }
+
+  /**
+   * Recuperar comanda baseada no celular
+   */
+  async recuperarComanda(celular: string): Promise<Comanda | null> {
+    try {
+      // Tentar recuperar sessão
+      const session = await this.sessionService.recoverSession(celular);
+      if (session?.comandaId) {
+        const comanda = this.comandasMock.find((c) => c.id === session.comandaId);
+        if (comanda && comanda.status === 'ABERTA') {
+          this.comandaAtualSubject.next(comanda);
+          this.atualizarItens();
+          return comanda;
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Erro ao recuperar comanda:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Encerrar sessão e comanda
+   */
+  encerrarSessao(): Observable<Comanda> {
+    const comandaEncerrada = this.encerrarComanda();
+    this.sessionService.endSession();
+    return comandaEncerrada;
   }
 
   private generateId(): string {
