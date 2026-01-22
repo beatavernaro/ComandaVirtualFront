@@ -48,7 +48,7 @@ export class ApiService {
     return this.get<T>(`comandas/session/${sessionId}`);
   }
 
-  syncComanda<T>(comandaData: any): Observable<T> {
+  syncComanda<T>(comandaData: T): Observable<T> {
     return this.post<T>('comandas/sync', comandaData);
   }
 
