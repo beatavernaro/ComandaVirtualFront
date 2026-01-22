@@ -1,9 +1,10 @@
 import { Routes } from '@angular/router';
 import { AdminAuthGuard } from './core/guards/admin-auth.guard';
+import { SessionGuard } from './core/guards/session.guard';
 
 export const routes: Routes = [
-  // Rota padrão redireciona para a comanda
-  { path: '', redirectTo: '/carrinho', pathMatch: 'full' },
+  // Rota padrão redireciona para start
+  { path: '', redirectTo: '/start', pathMatch: 'full' },
 
   // Rotas públicas (cliente)
   {
@@ -13,11 +14,13 @@ export const routes: Routes = [
   },
   {
     path: 'cardapio',
+    canActivate: [SessionGuard],
     loadComponent: () =>
       import('./public/pages/cardapio/cardapio.component').then((m) => m.CardapioComponent),
   },
   {
     path: 'carrinho',
+    canActivate: [SessionGuard],
     loadComponent: () =>
       import('./public/pages/carrinho/carrinho.component').then((m) => m.CarrinhoComponent),
   },
