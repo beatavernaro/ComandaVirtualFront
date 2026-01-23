@@ -7,6 +7,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { forkJoin, of } from 'rxjs';
+import { switchMap, map, catchError } from 'rxjs/operators';
 import { Produto } from '../../../../shared/models/produto.model';
 import { ProdutoService } from '../../../../core/services/produto.service';
 import { ComandaService } from '../../../../core/services/comanda.service';
@@ -200,16 +202,18 @@ export class ProdutoDetalhesComponent implements OnInit {
     const produtoId = this.route.snapshot.paramMap.get('id');
     if (produtoId) {
       this.carregarProduto(produtoId);
-      this.carregarEstatisticas(produtoId);
     }
   }
 
   private carregarProduto(id: string): void {
-    this.produtoService.obterTodosProdutos().subscribe({
-      next: (produtos) => {
-        this.produto = produtos.find((p) => p.id === id) || null;
+    this.produtoService.obterProdutoPorId(id).subscribe({
+      next: (produto) => {
+        this.produto = produto;
         if (!this.produto) {
           this.router.navigate(['/admin/produtos']);
+        } else {
+          // Carregar estatísticas após carregar o produto
+          this.carregarEstatisticas();
         }
       },
       error: (error) => {
@@ -219,74 +223,87 @@ export class ProdutoDetalhesComponent implements OnInit {
     });
   }
 
-  private carregarEstatisticas(produtoId: string): void {
-    // Primeiro obter todos os produtos para encontrar o produto específico
-    this.produtoService.obterTodosProdutos().subscribe({
-      next: (produtos: Produto[]) => {
-        const produto = produtos.find((p) => p.id === produtoId);
+  private carregarEstatisticas(): void {
+    // Usar o produto já carregado
+    if (!this.produto) {
+      console.error('Produto não encontrado');
+      this.estatisticas = { totalVendido: 0, receitaTotal: 0, comandasComProduto: 0 };
+      return;
+    }
 
-        if (!produto) {
-          console.error('Produto não encontrado');
-          return;
-        }
+    const produto = this.produto;
 
-        // Agora buscar estatísticas baseadas no nome do produto
-        this.comandaService.obterComandas().subscribe({
-          next: (comandas: Comanda[]) => {
-            let totalVendido = 0;
-            let receitaTotal = 0;
-            let comandasComProduto = 0;
-            let comandasProcessadas = 0;
+    this.comandaService
+      .obterComandas()
+      .pipe(
+        switchMap((comandas: Comanda[]) => {
+          if (comandas.length === 0) {
+            return of({ totalVendido: 0, receitaTotal: 0, comandasComProduto: 0 });
+          }
 
-            if (comandas.length === 0) {
-              this.estatisticas = {
-                totalVendido: 0,
-                receitaTotal: 0,
-                comandasComProduto: 0,
-              };
-              return;
-            }
+          // Criar array de observables para todas as comandas
+          const itensObservables = comandas.map((comanda) =>
+            this.comandaService.obterItensComanda(comanda.id).pipe(
+              map((itens) => ({ comanda, itens })),
+              catchError((error) => {
+                console.error(`Erro ao carregar itens da comanda ${comanda.id}:`, error);
+                return of({ comanda, itens: [] as ItemComanda[] });
+              }),
+            ),
+          );
 
-            // Para cada comanda, buscar seus itens
-            comandas.forEach((comanda: Comanda) => {
-              this.comandaService.obterItensComanda(comanda.id).subscribe({
-                next: (itens: ItemComanda[]) => {
-                  let temProduto = false;
-                  itens.forEach((item: ItemComanda) => {
-                    if (item.nome === produto.nome) {
-                      totalVendido += item.quantidade;
-                      receitaTotal += item.quantidade * item.valorUnitario;
-                      if (!temProduto) {
-                        temProduto = true;
-                      }
+          // Usar forkJoin para aguardar todas as requisições
+          return forkJoin(itensObservables).pipe(
+            map((resultados) => {
+              let totalVendido = 0;
+              let receitaTotal = 0;
+              let comandasComProduto = 0;
+
+              resultados.forEach(({ comanda, itens }) => {
+                let temProduto = false;
+
+                itens.forEach((item: ItemComanda) => {
+                  // Priorizar matching por produtoId, fallback para nome
+                  const isMatch = item.produtoId
+                    ? item.produtoId === produto.id
+                    : item.nome === produto.nome;
+
+                  if (isMatch) {
+                    totalVendido += item.quantidade;
+                    receitaTotal += item.quantidade * item.valorUnitario;
+                    if (!temProduto) {
+                      temProduto = true;
                     }
-                  });
-                  if (temProduto) {
-                    comandasComProduto++;
                   }
+                });
 
-                  comandasProcessadas++;
-                  // Atualizar estatísticas apenas quando todas as comandas foram processadas
-                  if (comandasProcessadas === comandas.length) {
-                    this.estatisticas = {
-                      totalVendido,
-                      receitaTotal,
-                      comandasComProduto,
-                    };
-                  }
-                },
+                if (temProduto) {
+                  comandasComProduto++;
+                }
               });
-            });
-          },
-          error: (error: any) => {
-            console.error('Erro ao carregar comandas:', error);
-          },
-        });
-      },
-      error: (error: any) => {
-        console.error('Erro ao carregar produtos:', error);
-      },
-    });
+
+              return { totalVendido, receitaTotal, comandasComProduto };
+            }),
+          );
+        }),
+        catchError((error) => {
+          console.error('Erro ao carregar estatísticas:', error);
+          return of({ totalVendido: 0, receitaTotal: 0, comandasComProduto: 0 });
+        }),
+      )
+      .subscribe({
+        next: (estatisticas) => {
+          this.estatisticas = estatisticas;
+        },
+        error: (error) => {
+          console.error('Erro inesperado ao carregar estatísticas:', error);
+          this.estatisticas = {
+            totalVendido: 0,
+            receitaTotal: 0,
+            comandasComProduto: 0,
+          };
+        },
+      });
   }
 
   voltar(): void {

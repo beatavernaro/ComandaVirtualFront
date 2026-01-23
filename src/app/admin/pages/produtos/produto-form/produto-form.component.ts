@@ -289,9 +289,8 @@ export class ProdutoFormComponent implements OnInit {
     if (!this.produtoId) return;
 
     this.isLoading = true;
-    this.produtoService.obterTodosProdutos().subscribe({
-      next: (produtos: Produto[]) => {
-        const produto = produtos.find((p) => p.id === this.produtoId);
+    this.produtoService.obterProdutoPorId(this.produtoId).subscribe({
+      next: (produto: Produto | null) => {
         if (produto) {
           this.produtoForm.patchValue({
             nome: produto.nome,
