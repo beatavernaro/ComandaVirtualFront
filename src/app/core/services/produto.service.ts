@@ -29,6 +29,12 @@ export class ProdutoService {
     // return this.apiService.get<Produto[]>('produtos');
   }
 
+  obterProdutoPorId(id: string): Observable<Produto | null> {
+    const produto = this.produtosMock.find((p) => p.id === id) || null;
+    return of(produto);
+    // return this.apiService.get<Produto>(`produtos/${id}`);
+  }
+
   criarProduto(produto: Omit<Produto, 'id'>): Observable<Produto> {
     const novoProduto: Produto = {
       id: this.generateId(),

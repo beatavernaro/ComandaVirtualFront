@@ -1,0 +1,379 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { Produto } from '../../../../shared/models/produto.model';
+import { ProdutoService } from '../../../../core/services/produto.service';
+
+@Component({
+  selector: 'app-produto-form',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatCheckboxModule,
+    MatIconModule,
+    MatSnackBarModule,
+  ],
+  template: `
+    <div class="container">
+      <!-- Header com navegação -->
+      <div class="header">
+        <button mat-icon-button (click)="voltar()" class="back-button">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>{{ isEditMode ? 'Editar Produto' : 'Novo Produto' }}</h1>
+      </div>
+
+      <!-- Formulário -->
+      <form [formGroup]="produtoForm" (ngSubmit)="onSubmit()" class="form-container">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome do Produto</mat-label>
+          <input
+            matInput
+            formControlName="nome"
+            placeholder="Digite o nome do produto"
+            maxlength="50"
+            #nomeInput
+          />
+          <mat-hint>{{ nomeInput.value.length || 0 }}/50</mat-hint>
+          <mat-error *ngIf="produtoForm.get('nome')?.hasError('required')">
+            O nome do produto é obrigatório
+          </mat-error>
+          <mat-error *ngIf="produtoForm.get('nome')?.hasError('minlength')">
+            O nome deve ter pelo menos 2 caracteres
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Preço</mat-label>
+          <span matPrefix class="prefix-spacing">R$&nbsp;</span>
+          <input
+            matInput
+            formControlName="preco"
+            type="text"
+            placeholder="0,00"
+            (input)="formatPreco($event)"
+            (blur)="validatePreco()"
+          />
+          <mat-error *ngIf="produtoForm.get('preco')?.hasError('required')">
+            O preço é obrigatório
+          </mat-error>
+          <mat-error *ngIf="produtoForm.get('preco')?.hasError('min')">
+            O preço deve ser maior que zero
+          </mat-error>
+          <mat-error *ngIf="produtoForm.get('preco')?.hasError('invalid')">
+            Formato inválido. Use vírgula para decimais (ex: 10,50)
+          </mat-error>
+        </mat-form-field>
+
+        <div class="checkbox-container">
+          <mat-checkbox formControlName="ativo" color="primary"> Produto ativo </mat-checkbox>
+        </div>
+
+        <!-- Botões de ação -->
+        <div class="actions">
+          <button mat-button type="button" (click)="voltar()" class="cancel-button">
+            Cancelar
+          </button>
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="produtoForm.invalid || isLoading"
+            class="submit-button"
+          >
+            <mat-icon *ngIf="isLoading">hourglass_empty</mat-icon>
+            {{ isEditMode ? 'Salvar Alterações' : 'Criar Produto' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  `,
+  styles: [
+    `
+      .container {
+        padding: 24px;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .back-button {
+        color: #556b2f;
+      }
+
+      h1 {
+        margin: 0;
+        color: #556b2f;
+        font-weight: 500;
+        font-size: 28px;
+      }
+
+      .form-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        background: white;
+        padding: 24px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .full-width {
+        width: 100%;
+      }
+
+      .checkbox-container {
+        margin: 8px 0 16px 0;
+        display: flex;
+        align-items: center;
+      }
+
+      .actions {
+        display: flex;
+        gap: 16px;
+        justify-content: flex-end;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      .cancel-button {
+        color: #666;
+      }
+
+      .submit-button {
+        background-color: #556b2f !important;
+        color: white !important;
+        min-width: 160px;
+      }
+
+      .submit-button:disabled {
+        background-color: #ccc !important;
+        color: #999 !important;
+      }
+
+      mat-checkbox {
+        margin: 8px 0;
+      }
+
+      mat-form-field {
+        margin-bottom: 8px;
+      }
+
+      .prefix-spacing {
+        color: #556b2f;
+        font-weight: 500;
+        margin-left: 10px;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 16px;
+        }
+
+        .actions {
+          flex-direction: column;
+        }
+
+        .cancel-button,
+        .submit-button {
+          width: 100%;
+        }
+      }
+    `,
+  ],
+})
+export class ProdutoFormComponent implements OnInit {
+  produtoForm: FormGroup;
+  isEditMode = false;
+  isLoading = false;
+  produtoId: string | null = null;
+
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private route: ActivatedRoute,
+    private produtoService: ProdutoService,
+    private snackBar: MatSnackBar,
+  ) {
+    this.produtoForm = this.createForm();
+  }
+
+  ngOnInit(): void {
+    this.produtoId = this.route.snapshot.paramMap.get('id');
+    this.isEditMode = this.produtoId !== null && this.produtoId !== 'novo';
+
+    if (this.isEditMode && this.produtoId) {
+      this.carregarProduto();
+    }
+  }
+
+  private createForm(): FormGroup {
+    return this.fb.group({
+      nome: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      preco: ['', [Validators.required, this.precoValidator]],
+      ativo: [true],
+    });
+  }
+
+  private precoValidator(control: any) {
+    if (!control.value) {
+      return { required: true };
+    }
+
+    const valorLimpo = control.value.replace(/[^\d,]/g, '');
+    const valorNumerico = parseFloat(valorLimpo.replace(',', '.'));
+
+    if (isNaN(valorNumerico) || valorNumerico <= 0) {
+      return { min: true };
+    }
+
+    if (!/^\d{1,6}(,\d{1,2})?$/.test(valorLimpo)) {
+      return { invalid: true };
+    }
+
+    return null;
+  }
+
+  formatPreco(event: any): void {
+    let valor = event.target.value;
+
+    // Remove tudo que não é dígito ou vírgula
+    valor = valor.replace(/[^\d,]/g, '');
+
+    // Remove vírgulas extras (deixa só uma)
+    const partes = valor.split(',');
+    if (partes.length > 2) {
+      valor = partes[0] + ',' + partes.slice(1).join('');
+    }
+
+    // Limita a 2 casas decimais após a vírgula
+    if (partes.length === 2 && partes[1].length > 2) {
+      valor = partes[0] + ',' + partes[1].substring(0, 2);
+    }
+
+    // Limita o valor antes da vírgula a 6 dígitos
+    if (partes[0].length > 6) {
+      valor = partes[0].substring(0, 6) + (partes[1] ? ',' + partes[1] : '');
+    }
+
+    event.target.value = valor;
+    this.produtoForm.patchValue({ preco: valor });
+  }
+
+  validatePreco(): void {
+    const precoControl = this.produtoForm.get('preco');
+    if (precoControl && precoControl.value) {
+      precoControl.updateValueAndValidity();
+    }
+  }
+
+  private carregarProduto(): void {
+    if (!this.produtoId) return;
+
+    this.isLoading = true;
+    this.produtoService.obterProdutoPorId(this.produtoId).subscribe({
+      next: (produto: Produto | null) => {
+        if (produto) {
+          this.produtoForm.patchValue({
+            nome: produto.nome,
+            preco: produto.preco.toString().replace('.', ','),
+            ativo: produto.ativo,
+          });
+        } else {
+          this.snackBar.open('Produto não encontrado', 'Fechar', {
+            duration: 3000,
+            panelClass: ['error-snackbar'],
+          });
+          this.voltar();
+        }
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar produto:', error);
+        this.snackBar.open('Erro ao carregar produto', 'Fechar', {
+          duration: 3000,
+          panelClass: ['error-snackbar'],
+        });
+        this.isLoading = false;
+        this.voltar();
+      },
+    });
+  }
+
+  onSubmit(): void {
+    if (this.produtoForm.valid) {
+      this.isLoading = true;
+      const formValue = this.produtoForm.value;
+      const precoLimpo = formValue.preco.replace(/[^\d,]/g, '');
+      const precoNumerico = parseFloat(precoLimpo.replace(',', '.'));
+
+      const produto: Omit<Produto, 'id'> = {
+        nome: formValue.nome.trim(),
+        preco: precoNumerico,
+        ativo: formValue.ativo,
+      };
+
+      if (this.isEditMode && this.produtoId) {
+        // Editar produto existente
+        this.produtoService.atualizarProduto(this.produtoId, produto).subscribe({
+          next: () => {
+            this.snackBar.open('Produto atualizado com sucesso!', 'Fechar', {
+              duration: 3000,
+              panelClass: ['success-snackbar'],
+            });
+            this.voltar();
+          },
+          error: (error) => {
+            console.error('Erro ao atualizar produto:', error);
+            this.snackBar.open('Erro ao atualizar produto. Tente novamente.', 'Fechar', {
+              duration: 3000,
+              panelClass: ['error-snackbar'],
+            });
+            this.isLoading = false;
+          },
+        });
+      } else {
+        // Criar novo produto
+        this.produtoService.criarProduto(produto).subscribe({
+          next: () => {
+            this.snackBar.open('Produto criado com sucesso!', 'Fechar', {
+              duration: 3000,
+              panelClass: ['success-snackbar'],
+            });
+            this.voltar();
+          },
+          error: (error) => {
+            console.error('Erro ao criar produto:', error);
+            this.snackBar.open('Erro ao criar produto. Tente novamente.', 'Fechar', {
+              duration: 3000,
+              panelClass: ['error-snackbar'],
+            });
+            this.isLoading = false;
+          },
+        });
+      }
+    }
+  }
+
+  voltar(): void {
+    this.router.navigate(['/admin/produtos']);
+  }
+}

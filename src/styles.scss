@@ -27,6 +27,17 @@ $custom-green-palette: (
   ),
 );
 
+// Snackbar customizations
+.success-snackbar {
+  --mdc-snackbar-container-color: #4caf50 !important;
+  --mdc-snackbar-supporting-text-color: #ffffff !important;
+}
+
+.error-snackbar {
+  --mdc-snackbar-container-color: #f44336 !important;
+  --mdc-snackbar-supporting-text-color: #ffffff !important;
+}
+
 html {
   height: 100%;
   @include mat.theme(
