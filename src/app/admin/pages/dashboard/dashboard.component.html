@@ -1,159 +1,125 @@
-<mat-sidenav-container class="admin-container">
-  <mat-sidenav #sidenav [opened]="sidenavOpened" mode="side" class="admin-sidenav">
-    <div class="sidenav-header">
-      <mat-icon class="logo-icon">restaurant</mat-icon>
-      <h3>Luderia Admin</h3>
-    </div>
+<div class="dashboard-container">
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>restaurant_menu</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ totalAbertas$ | async }}</h3>
+            <p>Comandas Abertas</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
 
-    <mat-nav-list>
-      @for (item of menuItems; track item.route) {
-        <mat-list-item (click)="navigateTo(item.route)" class="menu-item">
-          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          <span matListItemTitle>{{ item.label }}</span>
-        </mat-list-item>
-      }
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon completed">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ totalEncerradas$ | async }}</h3>
+            <p>Comandas Finalizadas</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
 
-      <mat-divider></mat-divider>
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon revenue">
+            <mat-icon>attach_money</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ formatarPreco((calcularTotalReceita() | async) || 0) }}</h3>
+            <p>Receita Total</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
 
-      <mat-list-item (click)="logout()" class="menu-item logout-item">
-        <mat-icon matListItemIcon>exit_to_app</mat-icon>
-        <span matListItemTitle>Sair</span>
-      </mat-list-item>
-    </mat-nav-list>
-  </mat-sidenav>
-
-  <mat-sidenav-content class="admin-content">
-    <mat-toolbar color="primary" class="admin-toolbar">
-      <button mat-icon-button (click)="toggleSidenav()">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span>Dashboard</span>
-    </mat-toolbar>
-
-    <div class="dashboard-container">
-      <div class="stats-grid">
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <div class="stat-icon">
-                <mat-icon>restaurant_menu</mat-icon>
-              </div>
-              <div class="stat-info">
-                <h3>{{ totalAbertas$ | async }}</h3>
-                <p>Comandas Abertas</p>
-              </div>
+  <div class="tables-grid">
+    <mat-card class="table-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>schedule</mat-icon>
+          Comandas em Andamento
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (comandasAbertas$ | async; as comandasAbertas) {
+          @if (comandasAbertas.length === 0) {
+            <div class="empty-state">
+              <mat-icon>info</mat-icon>
+              <p>Nenhuma comanda em andamento</p>
             </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <div class="stat-icon completed">
-                <mat-icon>check_circle</mat-icon>
-              </div>
-              <div class="stat-info">
-                <h3>{{ totalEncerradas$ | async }}</h3>
-                <p>Comandas Finalizadas</p>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <div class="stat-icon revenue">
-                <mat-icon>attach_money</mat-icon>
-              </div>
-              <div class="stat-info">
-                <h3>{{ formatarPreco((calcularTotalReceita() | async) || 0) }}</h3>
-                <p>Receita Total</p>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-      <div class="tables-grid">
-        <mat-card class="table-card">
-          <mat-card-header>
-            <mat-card-title>
-              <mat-icon>schedule</mat-icon>
-              Comandas em Andamento
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            @if (comandasAbertas$ | async; as comandasAbertas) {
-              @if (comandasAbertas.length === 0) {
-                <div class="empty-state">
-                  <mat-icon>info</mat-icon>
-                  <p>Nenhuma comanda em andamento</p>
-                </div>
-              } @else {
-                <div class="comandas-list">
-                  @for (comanda of comandasAbertas; track comanda.id) {
-                    <div class="comanda-item">
-                      <div class="comanda-info">
-                        <h4>{{ comanda.nomeCliente }}</h4>
-                        <p>{{ formatarData(comanda.dataCriacao) }}</p>
-                      </div>
-                      <div class="comanda-total">
-                        <span class="total">{{ formatarPreco(comanda.total) }}</span>
-                      </div>
-                    </div>
-                  }
+          } @else {
+            <div class="comandas-list">
+              @for (comanda of comandasAbertas; track comanda.id) {
+                <div class="comanda-item">
+                  <div class="comanda-info">
+                    <h4>{{ comanda.nomeCliente }}</h4>
+                    <p>{{ formatarData(comanda.dataCriacao) }}</p>
+                  </div>
+                  <div class="comanda-total">
+                    <span class="total">{{ formatarPreco(comanda.total) }}</span>
+                  </div>
                 </div>
               }
-            }
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-stroked-button (click)="navigateTo('/admin/comandas')">
-              <mat-icon>visibility</mat-icon>
-              Ver Todas
-            </button>
-          </mat-card-actions>
-        </mat-card>
+            </div>
+          }
+        }
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-stroked-button (click)="navigateTo('/admin/comandas')">
+          <mat-icon>visibility</mat-icon>
+          Ver Todas
+        </button>
+      </mat-card-actions>
+    </mat-card>
 
-        <mat-card class="table-card">
-          <mat-card-header>
-            <mat-card-title>
-              <mat-icon>history</mat-icon>
-              Últimas Finalizadas
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            @if (comandasEncerradas$ | async; as comandasEncerradas) {
-              @if (comandasEncerradas.length === 0) {
-                <div class="empty-state">
-                  <mat-icon>info</mat-icon>
-                  <p>Nenhuma comanda finalizada</p>
-                </div>
-              } @else {
-                <div class="comandas-list">
-                  @for (comanda of comandasEncerradas.slice(-5); track comanda.id) {
-                    <div class="comanda-item">
-                      <div class="comanda-info">
-                        <h4>{{ comanda.nomeCliente }}</h4>
-                        <p>{{ formatarData(comanda.dataEncerramento || comanda.dataCriacao) }}</p>
-                      </div>
-                      <div class="comanda-total">
-                        <span class="total completed">{{ formatarPreco(comanda.total) }}</span>
-                      </div>
-                    </div>
-                  }
+    <mat-card class="table-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>history</mat-icon>
+          Últimas Finalizadas
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (comandasEncerradas$ | async; as comandasEncerradas) {
+          @if (comandasEncerradas.length === 0) {
+            <div class="empty-state">
+              <mat-icon>info</mat-icon>
+              <p>Nenhuma comanda finalizada</p>
+            </div>
+          } @else {
+            <div class="comandas-list">
+              @for (comanda of comandasEncerradas.slice(-5); track comanda.id) {
+                <div class="comanda-item">
+                  <div class="comanda-info">
+                    <h4>{{ comanda.nomeCliente }}</h4>
+                    <p>{{ formatarData(comanda.dataEncerramento || comanda.dataCriacao) }}</p>
+                  </div>
+                  <div class="comanda-total">
+                    <span class="total completed">{{ formatarPreco(comanda.total) }}</span>
+                  </div>
                 </div>
               }
-            }
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-stroked-button (click)="navigateTo('/admin/comandas')">
-              <mat-icon>visibility</mat-icon>
-              Ver Histórico
-            </button>
-          </mat-card-actions>
-        </mat-card>
-      </div>
-    </div>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+            </div>
+          }
+        }
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-stroked-button (click)="navigateTo('/admin/comandas')">
+          <mat-icon>visibility</mat-icon>
+          Ver Histórico
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

@@ -17,8 +17,133 @@ export class ComandaService {
   public itensComanda$ = this.itensComandaSubject.asObservable();
 
   // Mock data para desenvolvimento
-  private comandasMock: Comanda[] = [];
-  private itensMock: ItemComanda[] = [];
+  private comandasMock: Comanda[] = [
+    {
+      id: 'cmd-001',
+      sessionId: 'sess-001',
+      nomeCliente: 'João Silva',
+      celular: '(11) 99999-1111',
+      status: 'ABERTA',
+      total: 25.5,
+      dataCriacao: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 horas atrás
+    },
+    {
+      id: 'cmd-002',
+      sessionId: 'sess-002',
+      nomeCliente: 'Maria Santos',
+      celular: '(11) 99999-2222',
+      status: 'ABERTA',
+      total: 18.0,
+      dataCriacao: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hora atrás
+    },
+    {
+      id: 'cmd-003',
+      sessionId: 'sess-003',
+      nomeCliente: 'Pedro Costa',
+      celular: '(11) 99999-3333',
+      status: 'ENCERRADA',
+      total: 42.75,
+      dataCriacao: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 horas atrás
+      dataEncerramento: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 horas atrás
+    },
+    {
+      id: 'cmd-004',
+      sessionId: 'sess-004',
+      nomeCliente: 'Ana Oliveira',
+      celular: '(11) 99999-4444',
+      status: 'ENCERRADA',
+      total: 31.2,
+      dataCriacao: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 dia atrás
+      dataEncerramento: new Date(Date.now() - 22 * 60 * 60 * 1000), // 22 horas atrás
+    },
+  ];
+
+  private itensMock: ItemComanda[] = [
+    // Itens da cmd-001 (João Silva)
+    {
+      id: 'item-001',
+      comandaId: 'cmd-001',
+      nome: 'Coca-Cola 350ml',
+      valorUnitario: 5.5,
+      quantidade: 2,
+      origem: 'CATALOGO',
+    },
+    {
+      id: 'item-002',
+      comandaId: 'cmd-001',
+      nome: 'Batata Frita',
+      valorUnitario: 14.5,
+      quantidade: 1,
+      origem: 'CATALOGO',
+    },
+    // Itens da cmd-002 (Maria Santos)
+    {
+      id: 'item-003',
+      comandaId: 'cmd-002',
+      nome: 'Suco de Laranja',
+      valorUnitario: 6.0,
+      quantidade: 2,
+      origem: 'CATALOGO',
+    },
+    {
+      id: 'item-004',
+      comandaId: 'cmd-002',
+      nome: 'Cookies',
+      valorUnitario: 6.0,
+      quantidade: 1,
+      origem: 'MANUAL',
+    },
+    // Itens da cmd-003 (Pedro Costa)
+    {
+      id: 'item-005',
+      comandaId: 'cmd-003',
+      nome: 'Pizza Individual',
+      valorUnitario: 22.0,
+      quantidade: 1,
+      origem: 'CATALOGO',
+    },
+    {
+      id: 'item-006',
+      comandaId: 'cmd-003',
+      nome: 'Refrigerante 600ml',
+      valorUnitario: 7.5,
+      quantidade: 2,
+      origem: 'CATALOGO',
+    },
+    {
+      id: 'item-007',
+      comandaId: 'cmd-003',
+      nome: 'Sobremesa especial',
+      valorUnitario: 5.75,
+      quantidade: 1,
+      origem: 'MANUAL',
+    },
+    // Itens da cmd-004 (Ana Oliveira)
+    {
+      id: 'item-008',
+      comandaId: 'cmd-004',
+      nome: 'Hambúrguer',
+      valorUnitario: 18.5,
+      quantidade: 1,
+      origem: 'CATALOGO',
+    },
+    {
+      id: 'item-009',
+      comandaId: 'cmd-004',
+      nome: 'Água 500ml',
+      valorUnitario: 3.5,
+      quantidade: 2,
+      origem: 'CATALOGO',
+    },
+    {
+      id: 'item-010',
+      comandaId: 'cmd-004',
+      nome: 'Brownie',
+      valorUnitario: 5.7,
+      quantidade: 1,
+      origem: 'MANUAL',
+    },
+  ];
 
   constructor(
     private apiService: ApiService,
@@ -206,6 +331,51 @@ export class ComandaService {
   obterComandas(): Observable<Comanda[]> {
     return of(this.comandasMock);
     // return this.apiService.get<Comanda[]>('comandas');
+  }
+
+  /**
+   * Obter itens de uma comanda específica (para admin)
+   */
+  obterItensComanda(comandaId: string): Observable<ItemComanda[]> {
+    const itens = this.itensMock.filter((item) => item.comandaId === comandaId);
+    return of(itens);
+    // return this.apiService.get<ItemComanda[]>(`comandas/${comandaId}/itens`);
+  }
+
+  /**
+   * Encerrar uma comanda específica (para admin)
+   */
+  encerrarComandaAdmin(comandaId: string): Observable<Comanda> {
+    const comanda = this.comandasMock.find((c) => c.id === comandaId);
+    if (!comanda) {
+      throw new Error('Comanda não encontrada');
+    }
+
+    if (comanda.status === 'ENCERRADA') {
+      throw new Error('Comanda já está encerrada');
+    }
+
+    const comandaEncerrada: Comanda = {
+      ...comanda,
+      status: 'ENCERRADA',
+      dataEncerramento: new Date(),
+    };
+
+    // Atualizar no mock
+    const index = this.comandasMock.findIndex((c) => c.id === comandaId);
+    if (index > -1) {
+      this.comandasMock[index] = comandaEncerrada;
+    }
+
+    // Se for a comanda atual ativa, limpar a sessão
+    const comandaAtual = this.comandaAtualSubject.value;
+    if (comandaAtual?.id === comandaId) {
+      this.limparComandaLocal();
+      this.comandaAtualSubject.next(comandaEncerrada);
+    }
+
+    return of(comandaEncerrada);
+    // return this.apiService.put<Comanda>(`comandas/${comandaId}/encerrar`, {});
   }
 
   private carregarComandaAtual(): void {
