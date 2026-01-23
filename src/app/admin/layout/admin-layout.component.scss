@@ -1,0 +1,89 @@
+.admin-container {
+  height: 100vh;
+}
+
+.admin-sidenav {
+  width: 280px;
+  background-color: #556b2f;
+  color: white;
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+
+  .sidenav-header {
+    padding: 24px 16px;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.15);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+
+    .logo-icon {
+      font-size: 48px;
+      height: 48px;
+      width: 48px;
+      color: #a9bc4a;
+      margin-bottom: 8px;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 1.2em;
+      font-weight: 400;
+    }
+  }
+
+  mat-nav-list {
+    padding-top: 16px;
+
+    .menu-item {
+      margin: 4px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      &.active {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+
+      &.logout-item {
+        margin-top: 16px;
+        color: #ffcdd2;
+
+        &:hover {
+          background-color: rgba(244, 67, 54, 0.1);
+          color: #f44336;
+        }
+      }
+
+      mat-icon {
+        color: inherit;
+      }
+
+      span {
+        font-weight: 500;
+      }
+    }
+
+    mat-divider {
+      background-color: rgba(255, 255, 255, 0.12);
+      margin: 16px 8px;
+    }
+  }
+}
+
+.admin-content {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: auto;
+  background-color: #fafafa;
+}
+
+@media (max-width: 768px) {
+  .admin-sidenav {
+    width: 100%;
+    position: fixed;
+    z-index: 1000;
+  }
+}

@@ -41,24 +41,40 @@ export const routes: Routes = [
           import('./admin/pages/login/login.component').then((m) => m.AdminLoginComponent),
       },
       {
-        path: 'dashboard',
+        path: '',
         loadComponent: () =>
-          import('./admin/pages/dashboard/dashboard.component').then(
-            (m) => m.AdminDashboardComponent,
-          ),
+          import('./admin/layout/admin-layout.component').then((m) => m.AdminLayoutComponent),
         canActivate: [AdminAuthGuard],
-      },
-      {
-        path: 'comandas',
-        loadComponent: () =>
-          import('./admin/pages/comandas/comandas.component').then((m) => m.AdminComandasComponent),
-        canActivate: [AdminAuthGuard],
-      },
-      {
-        path: 'produtos',
-        loadComponent: () =>
-          import('./admin/pages/produtos/produtos.component').then((m) => m.AdminProdutosComponent),
-        canActivate: [AdminAuthGuard],
+        children: [
+          {
+            path: 'dashboard',
+            loadComponent: () =>
+              import('./admin/pages/dashboard/dashboard.component').then(
+                (m) => m.AdminDashboardComponent,
+              ),
+          },
+          {
+            path: 'comandas',
+            loadComponent: () =>
+              import('./admin/pages/comandas/comandas.component').then(
+                (m) => m.AdminComandasComponent,
+              ),
+          },
+          {
+            path: 'comandas/:id',
+            loadComponent: () =>
+              import('./admin/pages/comandas/comanda-detalhes/comanda-detalhes.component').then(
+                (m) => m.ComandaDetalhesComponent,
+              ),
+          },
+          {
+            path: 'produtos',
+            loadComponent: () =>
+              import('./admin/pages/produtos/produtos.component').then(
+                (m) => m.AdminProdutosComponent,
+              ),
+          },
+        ],
       },
     ],
   },
