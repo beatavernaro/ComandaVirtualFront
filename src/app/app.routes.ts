@@ -74,6 +74,27 @@ export const routes: Routes = [
                 (m) => m.AdminProdutosComponent,
               ),
           },
+          {
+            path: 'produtos/novo',
+            loadComponent: () =>
+              import('./admin/pages/produtos/produto-form/produto-form.component').then(
+                (m) => m.ProdutoFormComponent,
+              ),
+          },
+          {
+            path: 'produtos/:id/editar',
+            loadComponent: () =>
+              import('./admin/pages/produtos/produto-form/produto-form.component').then(
+                (m) => m.ProdutoFormComponent,
+              ),
+          },
+          {
+            path: 'produtos/:id',
+            loadComponent: () =>
+              import('./admin/pages/produtos/produto-detalhes/produto-detalhes.component').then(
+                (m) => m.ProdutoDetalhesComponent,
+              ),
+          },
         ],
       },
     ],

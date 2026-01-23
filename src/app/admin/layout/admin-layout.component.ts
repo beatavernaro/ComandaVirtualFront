@@ -24,16 +24,17 @@ import { AdminAuthService } from '../../core/services/admin-auth.service';
     <mat-sidenav-container class="admin-container">
       <mat-sidenav opened="true" mode="side" class="admin-sidenav" disableClose="true">
         <div class="sidenav-header">
-          <mat-icon class="logo-icon">restaurant</mat-icon>
-          <h3>Luderia Admin</h3>
+          <img src="/logo.png" alt="Logo" class="logo-image" />
+          <h3>Angatu Admin</h3>
         </div>
 
         <mat-nav-list>
-          <mat-list-item 
-            *ngFor="let item of menuItems" 
-            (click)="navigateTo(item.route)" 
+          <mat-list-item
+            *ngFor="let item of menuItems"
+            (click)="navigateTo(item.route)"
             class="menu-item"
-            [class.active]="isActive(item.route)">
+            [class.active]="isActive(item.route)"
+          >
             <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
             <span matListItemTitle>{{ item.label }}</span>
           </mat-list-item>
@@ -52,7 +53,7 @@ import { AdminAuthService } from '../../core/services/admin-auth.service';
       </mat-sidenav-content>
     </mat-sidenav-container>
   `,
-  styleUrl: './admin-layout.component.scss'
+  styleUrl: './admin-layout.component.scss',
 })
 export class AdminLayoutComponent {
   menuItems = [
@@ -63,7 +64,7 @@ export class AdminLayoutComponent {
 
   constructor(
     private adminAuthService: AdminAuthService,
-    private router: Router
+    private router: Router,
   ) {}
 
   navigateTo(route: string): void {
