@@ -1,6 +1,21 @@
-# ComandaVirtual
+# Comanda Virtual - Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.0.
+Sistema de comanda virtual para a Luderia, desenvolvido em Angular 18.
+
+## Sobre o Projeto
+
+O Comanda Virtual é um sistema que permite aos clientes fazerem pedidos através de um aplicativo web, eliminando a necessidade de atendimento presencial. O sistema possui duas interfaces:
+
+- **Interface Pública**: Para clientes fazerem pedidos
+- **Interface Admin**: Para gestão de comandas e produtos
+
+## Integração com API
+
+O frontend está integrado com a API REST Comanda Virtual. Para mais detalhes sobre a integração, consulte [INTEGRACAO_API.md](./INTEGRACAO_API.md).
+
+### URLs da API:
+- **Desenvolvimento**: `https://localhost:7000/api`  
+- **Produção**: `https://comanda-virtual-api.azurewebsites.net/api`
 
 ## Development server
 

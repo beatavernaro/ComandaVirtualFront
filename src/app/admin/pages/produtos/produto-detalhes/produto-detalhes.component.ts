@@ -234,7 +234,7 @@ export class ProdutoDetalhesComponent implements OnInit {
     const produto = this.produto;
 
     this.comandaService
-      .obterComandas()
+      .obterComandasCompletas()
       .pipe(
         switchMap((comandas: Comanda[]) => {
           if (comandas.length === 0) {

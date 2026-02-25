@@ -1,7 +1,12 @@
-export interface ItemComanda {
+import { ItemComanda as ApiItemComanda } from './api.interfaces';
+
+export interface ItemComanda extends ApiItemComanda {}
+
+// Interface para compatibilidade com código existente
+export interface ItemComandaLegacy {
   id?: string;
   comandaId: string;
-  produtoId?: string; // ID do produto para matching mais confiável
+  produtoId?: string;
   nome: string;
   valorUnitario: number;
   quantidade: number;

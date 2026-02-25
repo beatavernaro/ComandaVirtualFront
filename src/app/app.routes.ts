@@ -3,8 +3,12 @@ import { AdminAuthGuard } from './core/guards/admin-auth.guard';
 import { SessionGuard } from './core/guards/session.guard';
 
 export const routes: Routes = [
-  // Rota padrão redireciona para start
-  { path: '', redirectTo: '/start', pathMatch: 'full' },
+  // Rota principal - Landing Page
+  {
+    path: '',
+    loadComponent: () =>
+      import('./public/pages/landing/landing.component').then((m) => m.LandingComponent),
+  },
 
   // Rotas públicas (cliente)
   {
@@ -101,5 +105,5 @@ export const routes: Routes = [
   },
 
   // Rota para páginas não encontradas
-  { path: '**', redirectTo: '/start' },
+  { path: '**', redirectTo: '/' },
 ];

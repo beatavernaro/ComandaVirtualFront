@@ -10,7 +10,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { ComandaService } from '../../../core/services/comanda.service';
-import { SessionService } from '../../../core/services/session.service';
+import { LocalStorageService, UserData } from '../../../core/services/local-storage.service';
 
 @Component({
   selector: 'app-start',
@@ -33,12 +33,12 @@ export class StartComponent implements OnInit {
   form: FormGroup;
   loading = false;
   hasActiveSession = false;
-  sessionData: any = null;
+  userData: UserData | null = null;
 
   constructor(
     private fb: FormBuilder,
     private comandaService: ComandaService,
-    private sessionService: SessionService,
+    private localStorageService: LocalStorageService,
     private router: Router,
     private snackBar: MatSnackBar,
   ) {
@@ -49,20 +49,20 @@ export class StartComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.checkExistingSession();
+    this.checkSavedUserData();
   }
 
-  private checkExistingSession(): void {
-    this.hasActiveSession = this.sessionService.hasActiveSession();
+  private checkSavedUserData(): void {
+    this.hasActiveSession = this.localStorageService.hasValidUserData();
 
     if (this.hasActiveSession) {
-      this.sessionData = this.sessionService.getCurrentSession();
+      this.userData = this.localStorageService.getUserData();
 
-      // Pré-preencher o formulário com dados da sessão
-      if (this.sessionData) {
+      // Pré-preencher o formulário com dados salvos
+      if (this.userData) {
         this.form.patchValue({
-          nomeCliente: this.sessionData.nomeCliente,
-          celular: this.sessionData.celular,
+          nomeCliente: this.userData.nomeCliente,
+          celular: this.userData.celular,
         });
       }
     }
@@ -73,92 +73,99 @@ export class StartComponent implements OnInit {
       this.loading = true;
       const { nomeCliente, celular } = this.form.value;
 
-      // Se já há sessão ativa, continuar com ela
-      if (this.hasActiveSession) {
-        this.continueWithExistingSession();
+      // Se já há dados salvos, continuar com comanda existente
+      if (this.hasActiveSession && this.userData?.comandaId) {
+        this.continueWithExistingComanda();
         return;
       }
 
-      // Criar nova comanda e sessão
-      this.createNewSession(nomeCliente, celular);
+      // Verificar se existe comanda aberta para este celular
+      this.checkExistingComanda(nomeCliente, celular);
     } else {
       this.markFormGroupTouched();
     }
   }
 
-  private createNewSession(nomeCliente: string, celular: string): void {
-    this.comandaService.criarComanda(nomeCliente, celular).subscribe({
-      next: (comanda) => {
-        this.snackBar.open('Comanda iniciada com sucesso!', 'Fechar', { duration: 3000 });
-        this.router.navigate(['/cardapio']);
-      },
-      error: (error) => {
-        console.error('Erro ao criar sessão:', error);
-        this.snackBar.open('Erro ao iniciar comanda. Tente novamente.', 'Fechar', {
-          duration: 5000,
-        });
-        this.loading = false;
-      },
-    });
-  }
-
-  private continueWithExistingSession(): void {
-    // Atualizar dados da sessão se necessário
-    const { nomeCliente, celular } = this.form.value;
-
-    if (this.sessionData.nomeCliente !== nomeCliente || this.sessionData.celular !== celular) {
-      this.sessionService.updateSession({
-        nomeCliente,
-        celular,
-      });
-    }
-
+  private continueWithExistingComanda(): void {
+    this.localStorageService.updateLastActivity();
     this.snackBar.open('Continuando com sua comanda...', 'Fechar', { duration: 3000 });
     this.router.navigate(['/cardapio']);
     this.loading = false;
   }
 
-  onRecoverSession(): void {
+  private checkExistingComanda(nomeCliente: string, celular: string): void {
+    this.comandaService.buscarComandaPorCelular(celular).subscribe({
+      next: (comanda) => {
+        if (comanda) {
+          // Comanda encontrada - salvar dados e continuar
+          this.localStorageService.saveUserData({
+            nomeCliente,
+            celular,
+            comandaId: comanda.id
+          });
+          this.snackBar.open('Comanda encontrada! Continuando...', 'Fechar', { duration: 3000 });
+          this.router.navigate(['/cardapio']);
+        } else {
+          // Nenhuma comanda encontrada - criar nova
+          this.createNewComanda(nomeCliente, celular);
+        }
+      },
+      error: (error) => {
+        console.error('Erro ao verificar comanda existente:', error);
+        // Em caso de erro, tentar criar nova comanda
+        this.createNewComanda(nomeCliente, celular);
+      },
+      complete: () => {
+        this.loading = false;
+      }
+    });
+  }
+
+  private createNewComanda(nomeCliente: string, celular: string): void {
+    this.comandaService.criarNovaComanda(nomeCliente, celular).subscribe({
+      next: (comanda) => {
+        // Dados do usuário já são salvos no ComandaService (incluindo o token)
+        // Apenas atualizar os dados locais com o ID da comanda
+        this.localStorageService.saveUserData({
+          nomeCliente,
+          celular,
+          comandaId: comanda.id
+        });
+        this.snackBar.open('Comanda criada com sucesso!', 'Fechar', { duration: 3000 });
+        this.router.navigate(['/cardapio']);
+      },
+      error: (error) => {
+        console.error('Erro ao criar comanda:', error);
+        this.snackBar.open('Erro ao criar comanda. Tente novamente.', 'Fechar', {
+          duration: 5000,
+        });
+      },
+      complete: () => {
+        this.loading = false;
+      }
+    });
+  }
+
+  onRecoverComanda(): void {
     if (this.form.get('celular')?.valid) {
       this.loading = true;
       const celular = this.form.get('celular')?.value;
+      const nomeCliente = this.form.get('nomeCliente')?.value || '';
 
-      this.recoverSessionData(celular);
+      this.checkExistingComanda(nomeCliente, celular);
     } else {
-      this.snackBar.open('Por favor, informe um celular válido para recuperar a sessão', 'Fechar', {
+      this.snackBar.open('Por favor, informe um celular válido para recuperar a comanda', 'Fechar', {
         duration: 5000,
       });
-    }
-  }
-
-  private async recoverSessionData(celular: string): Promise<void> {
-    try {
-      const comanda = await this.comandaService.recuperarComanda(celular);
-
-      if (comanda) {
-        this.snackBar.open('Sessão recuperada com sucesso!', 'Fechar', { duration: 3000 });
-        this.router.navigate(['/cardapio']);
-      } else {
-        this.snackBar.open('Nenhuma comanda ativa encontrada para este celular', 'Fechar', {
-          duration: 5000,
-        });
-      }
-    } catch (error) {
-      console.error('Erro ao recuperar sessão:', error);
-      this.snackBar.open('Erro ao recuperar sessão. Tente novamente.', 'Fechar', {
-        duration: 5000,
-      });
-    } finally {
-      this.loading = false;
     }
   }
 
   onClearSession(): void {
-    this.sessionService.clearSession();
+    this.localStorageService.clearUserData();
     this.hasActiveSession = false;
-    this.sessionData = null;
+    this.userData = null;
     this.form.reset();
-    this.snackBar.open('Sessão limpa. Você pode iniciar uma nova comanda.', 'Fechar', {
+    this.snackBar.open('Dados limpos. Você pode iniciar uma nova comanda.', 'Fechar', {
       duration: 3000,
     });
   }

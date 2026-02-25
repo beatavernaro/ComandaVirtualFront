@@ -54,7 +54,7 @@ export class AdminComandasComponent implements OnInit {
   }
 
   private carregarComandas(): void {
-    this.comandas$ = this.comandaService.obterComandas();
+    this.comandas$ = this.comandaService.obterComandasCompletas();
 
     this.comandasAbertas$ = this.comandas$.pipe(
       map((comandas) => comandas.filter((c) => c.status === 'ABERTA')),
@@ -113,7 +113,7 @@ export class AdminComandasComponent implements OnInit {
     }).format(preco);
   }
 
-  formatarData(data: Date): string {
+  formatarData(data: Date | string): string {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
@@ -125,13 +125,13 @@ export class AdminComandasComponent implements OnInit {
 
   calcularTotalAbertas(): Observable<number> {
     return this.comandasAbertas$.pipe(
-      map((comandas) => comandas.reduce((total, comanda) => total + comanda.total, 0)),
+      map((comandas) => comandas.reduce((total, comanda) => total + comanda.valorTotal, 0)),
     );
   }
 
   calcularTotalEncerradas(): Observable<number> {
     return this.comandasEncerradas$.pipe(
-      map((comandas) => comandas.reduce((total, comanda) => total + comanda.total, 0)),
+      map((comandas) => comandas.reduce((total, comanda) => total + comanda.valorTotal, 0)),
     );
   }
 }

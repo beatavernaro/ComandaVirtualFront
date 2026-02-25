@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Observable } from 'rxjs';
-import { SessionService } from '../services/session.service';
+import { LocalStorageService } from '../services/local-storage.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SessionGuard implements CanActivate {
   constructor(
-    private sessionService: SessionService,
+    private localStorageService: LocalStorageService,
     private router: Router,
   ) {}
 
@@ -16,16 +16,16 @@ export class SessionGuard implements CanActivate {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot,
   ): Observable<boolean> | Promise<boolean> | boolean {
-    const hasActiveSession = this.sessionService.hasActiveSession();
+    const hasValidUserData = this.localStorageService.hasValidUserData();
 
-    if (!hasActiveSession) {
-      // Redirecionar para a página de início se não há sessão ativa
+    if (!hasValidUserData) {
+      // Redirecionar para a página de início se não há dados válidos
       this.router.navigate(['/start']);
       return false;
     }
 
     // Atualizar última atividade
-    this.sessionService.updateLastActivity();
+    this.localStorageService.updateLastActivity();
 
     return true;
   }

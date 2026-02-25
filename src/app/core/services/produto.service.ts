@@ -1,71 +1,109 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { Produto } from '../../shared/models/produto.model';
-import { ApiService } from './api.service';
+import { Observable, catchError, throwError } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
+import { LocalStorageService } from './local-storage.service';
+import { 
+  Produto, 
+  CreateProdutoRequest, 
+  UpdateProdutoRequest 
+} from '../../shared/models/api.interfaces';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProdutoService {
-  // Mock data para desenvolvimento
-  private produtosMock: Produto[] = [
-    { id: '1', nome: 'Água Mineral', preco: 3.0, ativo: true },
-    { id: '2', nome: 'Refrigerante Coca-Cola', preco: 5.0, ativo: true },
-    { id: '3', nome: 'Salgadinho Doritos', preco: 8.0, ativo: true },
-    { id: '4', nome: 'Sanduíche Natural', preco: 12.0, ativo: true },
-    { id: '5', nome: 'Café Espresso', preco: 4.0, ativo: true },
-  ];
+  private baseUrl = environment.apiUrl;
 
-  constructor(private apiService: ApiService) {}
+  constructor(
+    private http: HttpClient,
+    private localStorageService: LocalStorageService,
+    private router: Router
+  ) {}
 
+  /**
+   * Listar produtos ativos (público)
+   */
   obterProdutosAtivos(): Observable<Produto[]> {
-    const produtosAtivos = this.produtosMock.filter((p) => p.ativo);
-    return of(produtosAtivos);
-    // return this.apiService.get<Produto[]>('produtos/ativos');
+    return this.http.get<Produto[]>(`${this.baseUrl}/produtos/ativos`).pipe(
+      catchError(this.handleError)
+    );
   }
 
+  /**
+   * Listar todos os produtos (Admin)
+   */
   obterTodosProdutos(): Observable<Produto[]> {
-    return of(this.produtosMock);
-    // return this.apiService.get<Produto[]>('produtos');
+    return this.http.get<Produto[]>(`${this.baseUrl}/produtos`).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  obterProdutoPorId(id: string): Observable<Produto | null> {
-    const produto = this.produtosMock.find((p) => p.id === id) || null;
-    return of(produto);
-    // return this.apiService.get<Produto>(`produtos/${id}`);
+  /**
+   * Buscar produto por ID
+   */
+  obterProdutoPorId(id: string): Observable<Produto> {
+    return this.http.get<Produto>(`${this.baseUrl}/produtos/${id}`).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  criarProduto(produto: Omit<Produto, 'id'>): Observable<Produto> {
-    const novoProduto: Produto = {
-      id: this.generateId(),
-      ...produto,
-    };
-
-    this.produtosMock.push(novoProduto);
-    return of(novoProduto);
-    // return this.apiService.post<Produto>('produtos', produto);
+  /**
+   * Criar novo produto (Admin)
+   */
+  criarProduto(produto: CreateProdutoRequest): Observable<Produto> {
+    return this.http.post<Produto>(`${this.baseUrl}/produtos`, produto).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  atualizarProduto(id: string, produto: Partial<Produto>): Observable<Produto> {
-    const index = this.produtosMock.findIndex((p) => p.id === id);
-    if (index > -1) {
-      this.produtosMock[index] = { ...this.produtosMock[index], ...produto };
-      return of(this.produtosMock[index]);
-    }
-    throw new Error('Produto não encontrado');
-    // return this.apiService.put<Produto>(`produtos/${id}`, produto);
+  /**
+   * Atualizar produto (Admin)
+   */
+  atualizarProduto(id: string, updates: UpdateProdutoRequest): Observable<Produto> {
+    return this.http.put<Produto>(`${this.baseUrl}/produtos/${id}`, updates).pipe(
+      catchError(this.handleError)
+    );
   }
 
+  /**
+   * Desativar produto (Admin)
+   */
   desativarProduto(id: string): Observable<void> {
-    const index = this.produtosMock.findIndex((p) => p.id === id);
-    if (index > -1) {
-      this.produtosMock[index].ativo = false;
-    }
-    return of(void 0);
-    // return this.apiService.put<void>(`produtos/${id}/desativar`, {});
+    return this.http.put<void>(`${this.baseUrl}/produtos/${id}/desativar`, {}).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  private generateId(): string {
-    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+  /**
+   * Tratamento de erros
+   */
+  private handleError = (error: HttpErrorResponse) => {
+    console.error('Erro no ProdutoService:', error);
+    
+    let errorMessage = 'Erro desconhecido';
+    
+    if (error.status === 401) {
+      // Token expirado ou inválido
+      this.localStorageService.clearUserData();
+      this.router.navigate(['/start']);
+      errorMessage = 'Sessão expirada. Faça login novamente.';
+    } else if (error.status === 403) {
+      // Acesso negado
+      errorMessage = 'Acesso negado';
+    } else if (error.error?.message) {
+      errorMessage = error.error.message;
+    } else if (error.status === 0) {
+      errorMessage = 'Erro de conexão com o servidor';
+    } else if (error.status === 404) {
+      errorMessage = 'Produto não encontrado';
+    } else if (error.status === 400) {
+      errorMessage = 'Dados inválidos';
+    } else if (error.status >= 500) {
+      errorMessage = 'Erro interno do servidor';
+    }
+
+    return throwError(() => new Error(errorMessage));
   }
 }

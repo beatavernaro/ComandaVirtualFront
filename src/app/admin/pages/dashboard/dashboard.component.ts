@@ -29,7 +29,7 @@ export class AdminDashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.comandas$ = this.comandaService.obterComandas();
+    this.comandas$ = this.comandaService.obterComandasCompletas();
 
     this.comandasAbertas$ = this.comandas$.pipe(
       map((comandas) => comandas.filter((c) => c.status === 'ABERTA')),
@@ -55,7 +55,7 @@ export class AdminDashboardComponent implements OnInit {
     }).format(preco);
   }
 
-  formatarData(data: Date): string {
+  formatarData(data: Date | string): string {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
@@ -67,7 +67,7 @@ export class AdminDashboardComponent implements OnInit {
 
   calcularTotalReceita(): Observable<number> {
     return this.comandasEncerradas$.pipe(
-      map((comandas) => comandas.reduce((total, comanda) => total + comanda.total, 0)),
+      map((comandas) => comandas.reduce((total, comanda) => total + comanda.valorTotal, 0)),
     );
   }
 }

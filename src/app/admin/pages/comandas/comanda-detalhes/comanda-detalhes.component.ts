@@ -86,7 +86,7 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
                   </mat-chip>
                 </mat-chip-set>
                 <div class="total-value">
-                  <strong>Total: R$ {{ comanda.total | number: '1.2-2' }}</strong>
+                  <strong>Total: R$ {{ comanda.valorTotal | number: '1.2-2' }}</strong>
                 </div>
               </div>
               <div class="dates-info">
@@ -225,7 +225,7 @@ export class ComandaDetalhesComponent implements OnInit {
   }
 
   private carregarComanda(): void {
-    this.comandaService.obterComandas().subscribe({
+    this.comandaService.obterComandasCompletas().subscribe({
       next: (comandas) => {
         this.comanda = comandas.find((c) => c.id === this.comandaId) || null;
         if (this.comanda) {
@@ -273,8 +273,11 @@ export class ComandaDetalhesComponent implements OnInit {
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed && this.comanda) {
         this.comandaService.encerrarComandaAdmin(this.comanda.id).subscribe({
-          next: (comandaEncerrada: Comanda) => {
-            this.comanda = comandaEncerrada;
+          next: () => {
+            // Atualizar status local
+            if (this.comanda) {
+              this.comanda.status = 'Encerrada' as any;
+            }
             this.snackBar.open('Comanda encerrada com sucesso!', 'Fechar', {
               duration: 3000,
               panelClass: ['success-snackbar'],

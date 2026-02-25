@@ -160,7 +160,9 @@ export class ProdutoFormDialogComponent {
   private createForm(): FormGroup {
     return this.fb.group({
       nome: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      descricao: ['', [Validators.maxLength(255)]],
       preco: [0, [Validators.required, Validators.min(0.01)]],
+      categoria: ['', [Validators.maxLength(50)]],
       ativo: [true],
     });
   }
@@ -170,7 +172,9 @@ export class ProdutoFormDialogComponent {
       const formValue = this.produtoForm.value;
       const produto: Omit<Produto, 'id'> = {
         nome: formValue.nome.trim(),
+        descricao: formValue.descricao?.trim() || '',
         preco: parseFloat(formValue.preco),
+        categoria: formValue.categoria?.trim() || '',
         ativo: formValue.ativo,
       };
 
