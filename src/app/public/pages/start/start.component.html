@@ -7,7 +7,7 @@
       </mat-card-title>
       <mat-card-subtitle>
         @if (hasActiveSession) {
-          Bem-vindo de volta, {{ sessionData?.nomeCliente }}!
+          Bem-vindo de volta, {{ userData?.nomeCliente }}!
         } @else {
           Inicie sua comanda digital
         }
@@ -126,7 +126,7 @@
             mat-button
             color="accent"
             class="recovery-button"
-            (click)="onRecoverSession()"
+            (click)="onRecoverComanda()"
             [disabled]="loading || !form.get('celular')?.valid"
           >
             <mat-icon>restore</mat-icon>

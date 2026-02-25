@@ -1,20 +1,14 @@
-export interface Comanda {
-  id: string;
-  sessionId?: string;
-  nomeCliente: string;
-  celular: string;
-  status: 'ABERTA' | 'ENCERRADA';
-  total: number;
-  dataCriacao: Date;
-  dataEncerramento?: Date;
-  observacoes?: string;
-}
+import { Comanda as ApiComanda, ItemComanda, ComandaStatus } from './api.interfaces';
+
+export interface Comanda extends ApiComanda {}
 
 export interface ComandaResumo {
   id: string;
   nomeCliente: string;
-  total: number;
+  valorTotal: number;
   quantidadeItens: number;
-  status: 'ABERTA' | 'ENCERRADA';
-  dataCriacao: Date;
+  status: string;
+  dataCriacao: string;
 }
+
+export type { ItemComanda };

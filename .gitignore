@@ -43,6 +43,14 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 
+# Environment variables and sensitive data
+.env
+.env.local
+.env.development
+.env.production
+config/secrets.*
+src/environments/environment.secrets.ts
+
 # Angular specific
 /dist/
 /out-tsc/

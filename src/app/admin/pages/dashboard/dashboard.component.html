@@ -67,7 +67,7 @@
                     <p>{{ formatarData(comanda.dataCriacao) }}</p>
                   </div>
                   <div class="comanda-total">
-                    <span class="total">{{ formatarPreco(comanda.total) }}</span>
+                    <span class="total">{{ formatarPreco(comanda.valorTotal) }}</span>
                   </div>
                 </div>
               }
@@ -106,7 +106,7 @@
                     <p>{{ formatarData(comanda.dataEncerramento || comanda.dataCriacao) }}</p>
                   </div>
                   <div class="comanda-total">
-                    <span class="total completed">{{ formatarPreco(comanda.total) }}</span>
+                    <span class="total completed">{{ formatarPreco(comanda.valorTotal) }}</span>
                   </div>
                 </div>
               }

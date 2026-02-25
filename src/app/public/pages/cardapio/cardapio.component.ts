@@ -96,13 +96,13 @@ export class AddItemManualComponent {
   onSubmit(): void {
     if (this.form.valid) {
       const { nome, preco } = this.form.value;
+      // Para itens manuais, criar um produto temporário com origem MANUAL
+      // O backend deve lidar com itens sem produtoId como manuais
       this.comandaService
-        .adicionarItem({
-          nome,
-          valorUnitario: parseFloat(preco),
-          quantidade: 1,
-          origem: 'MANUAL',
-        })
+        .adicionarItem(
+          0, // produtoId 0 indica item manual
+          1 // quantidade
+        )
         .subscribe({
           next: () => {
             this.snackBar.open('Item adicionado!', 'Fechar', { duration: 2000 });
@@ -188,12 +188,10 @@ export class CardapioComponent implements OnInit {
     console.log('Tentando adicionar produto:', produto);
 
     this.comandaService
-      .adicionarItem({
-        nome: produto.nome,
-        valorUnitario: produto.preco,
-        quantidade: 1,
-        origem: 'CATALOGO',
-      })
+      .adicionarItem(
+        parseInt(produto.id), // produtoId convertido para number
+        1 // quantidade
+      )
       .subscribe({
         next: (item) => {
           console.log('Produto adicionado com sucesso:', item);
