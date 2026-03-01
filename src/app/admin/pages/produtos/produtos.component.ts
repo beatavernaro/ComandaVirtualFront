@@ -11,6 +11,9 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { Router, NavigationEnd } from '@angular/router';
+import { Observable } from 'rxjs';
+import { map, catchError, shareReplay, filter } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { Produto } from '../../../shared/models/produto.model';
 import { ProdutoService } from '../../../core/services/produto.service';
 import {
@@ -18,7 +21,6 @@ import {
   ConfirmDialogData,
 } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-admin-produtos',
@@ -78,7 +80,7 @@ import { filter } from 'rxjs/operators';
       <div
         style="background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
       >
-        <table mat-table [dataSource]="produtosFiltrados" style="width: 100%;">
+        <table mat-table [dataSource]="(produtosFiltrados$ | async) || []" style="width: 100%;">
           <!-- Coluna Nome -->
           <ng-container matColumnDef="nome">
             <th
@@ -168,29 +170,38 @@ import { filter } from 'rxjs/operators';
 
         <!-- Mensagem quando não há produtos -->
         <div
-          *ngIf="produtosFiltrados.length === 0"
-          style="padding: 48px; text-align: center; color: #666;"
+          *ngIf="(produtosFiltrados$ | async) as produtosFiltrados; else semProdutos"
         >
-          <mat-icon style="font-size: 64px; width: 64px; height: 64px; color: #ddd;"
-            >inventory</mat-icon
+          <div
+            *ngIf="produtosFiltrados.length === 0"
+            style="padding: 48px; text-align: center; color: #666;"
           >
-          <p style="margin: 16px 0; font-size: 18px;">
-            {{
-              produtos.length === 0
-                ? 'Nenhum produto cadastrado'
-                : 'Nenhum produto encontrado para "' + termoBusca + '"'
-            }}
-          </p>
-          <button
-            *ngIf="produtos.length === 0"
-            mat-raised-button
-            style="background-color: #556b2f; color: white;"
-            (click)="criarNovoProduto()"
-          >
-            <mat-icon>add</mat-icon>
-            Cadastrar Primeiro Produto
-          </button>
+            <mat-icon style="font-size: 64px; width: 64px; height: 64px; color: #ddd;"
+              >inventory</mat-icon
+            >
+            <p style="margin: 16px 0; font-size: 18px;">
+              {{
+                (produtos$ | async)?.length === 0
+                  ? 'Nenhum produto cadastrado'
+                  : 'Nenhum produto encontrado para "' + termoBusca + '"'
+              }}
+            </p>
+            <button
+              *ngIf="(produtos$ | async)?.length === 0"
+              mat-raised-button
+              style="background-color: #556b2f; color: white;"
+              (click)="criarNovoProduto()"
+            >
+              <mat-icon>add</mat-icon>
+              Cadastrar Primeiro Produto
+            </button>
+          </div>
         </div>
+        <ng-template #semProdutos>
+          <div style="padding: 48px; text-align: center; color: #666;">
+            <p>Carregando produtos...</p>
+          </div>
+        </ng-template>
       </div>
     </div>
   `,
@@ -216,11 +227,14 @@ import { filter } from 'rxjs/operators';
   encapsulation: ViewEncapsulation.None,
 })
 export class AdminProdutosComponent implements OnInit, OnDestroy {
-  produtos: Produto[] = [];
-  produtosFiltrados: Produto[] = [];
   termoBusca: string = '';
   displayedColumns: string[] = ['nome', 'preco', 'acoes'];
   private routeSubscription?: Subscription;
+  
+  // Observable com todos os produtos
+  produtos$!: Observable<Produto[]>;
+  // Observable filtrado baseado no termo de busca
+  produtosFiltrados$!: Observable<Produto[]>;
 
   constructor(
     private produtoService: ProdutoService,
@@ -248,30 +262,34 @@ export class AdminProdutosComponent implements OnInit, OnDestroy {
     }
   }
 
-  carregarProdutos(): void {
-    this.produtoService.obterTodosProdutos().subscribe({
-      next: (produtos) => {
-        this.produtos = produtos;
-        this.filtrarProdutos();
-      },
-      error: (error) => {
+  private carregarProdutos(): void {
+    this.produtos$ = this.produtoService.obterTodosProdutos().pipe(
+      catchError((error) => {
         console.error('Erro ao carregar produtos:', error);
         this.snackBar.open('Erro ao carregar produtos', 'Fechar', { 
           duration: 3000,
           panelClass: ['error-snackbar']
         });
-      },
-    });
+        return of([]);
+      }),
+      shareReplay(1),
+    );
+
+    this.produtosFiltrados$ = this.produtos$.pipe(
+      map((produtos) => 
+        !this.termoBusca.trim()
+          ? produtos
+          : produtos.filter((produto) =>
+              produto.nome.toLowerCase().includes(this.termoBusca.toLowerCase()),
+            ),
+      ),
+      shareReplay(1),
+    );
   }
 
   filtrarProdutos(): void {
-    if (!this.termoBusca.trim()) {
-      this.produtosFiltrados = this.produtos;
-    } else {
-      this.produtosFiltrados = this.produtos.filter((produto) =>
-        produto.nome.toLowerCase().includes(this.termoBusca.toLowerCase()),
-      );
-    }
+    // Recarregar observables com novo termo de busca
+    this.carregarProdutos();
   }
 
   editarProduto(produto: Produto): void {
@@ -309,15 +327,16 @@ export class AdminProdutosComponent implements OnInit, OnDestroy {
       if (result) {
         this.produtoService.atualizarProduto(produto.id!, { ativo: !produto.ativo }).subscribe({
           next: () => {
-            produto.ativo = !produto.ativo;
             this.snackBar.open(
-              `Produto ${produto.ativo ? 'ativado' : 'desativado'} com sucesso`,
+              `Produto ${!produto.ativo ? 'ativado' : 'desativado'} com sucesso`,
               'Fechar',
               { 
                 duration: 3000,
                 panelClass: ['success-snackbar']
               },
             );
+            // Recarregar produtos para manter sincronizado
+            this.carregarProdutos();
           },
           error: (error) => {
             console.error(`Erro ao ${acao} produto:`, error);

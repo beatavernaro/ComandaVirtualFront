@@ -300,22 +300,20 @@ export class ProdutoFormComponent implements OnInit {
             ativo: produto.ativo,
           });
         } else {
-          this.snackBar.open('Produto não encontrado', 'Fechar', {
-            duration: 3000,
+          this.snackBar.open('Produto não encontrado.', 'Fechar', {
+            duration: 5000,
             panelClass: ['error-snackbar'],
           });
-          this.voltar();
         }
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Erro ao carregar produto:', error);
-        this.snackBar.open('Erro ao carregar produto', 'Fechar', {
-          duration: 3000,
+        this.snackBar.open('Erro ao carregar produto. Tente novamente.', 'Fechar', {
+          duration: 5000,
           panelClass: ['error-snackbar'],
         });
         this.isLoading = false;
-        this.voltar();
       },
     });
   }
@@ -343,12 +341,12 @@ export class ProdutoFormComponent implements OnInit {
               duration: 3000,
               panelClass: ['success-snackbar'],
             });
-            this.voltar();
+            this.router.navigate(['/admin/produtos']);
           },
           error: (error) => {
             console.error('Erro ao atualizar produto:', error);
             this.snackBar.open('Erro ao atualizar produto. Tente novamente.', 'Fechar', {
-              duration: 3000,
+              duration: 5000,
               panelClass: ['error-snackbar'],
             });
             this.isLoading = false;
@@ -362,12 +360,12 @@ export class ProdutoFormComponent implements OnInit {
               duration: 3000,
               panelClass: ['success-snackbar'],
             });
-            this.voltar();
+            this.router.navigate(['/admin/produtos']);
           },
           error: (error) => {
             console.error('Erro ao criar produto:', error);
             this.snackBar.open('Erro ao criar produto. Tente novamente.', 'Fechar', {
-              duration: 3000,
+              duration: 5000,
               panelClass: ['error-snackbar'],
             });
             this.isLoading = false;

@@ -45,10 +45,23 @@ export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
   const isGetComandaById = req.method === 'GET' && req.url.match(/\/api\/comandas\/[^\/]+$/) && 
     !req.url.includes('/itens');
 
+  // Verificar se estamos em rota de admin
+  const isAdminRoute = router.url.includes('/admin');
+
   let authReq = req;
 
   if (isAdminEndpoint) {
     // Usar token admin
+    const adminToken = adminAuthService.getToken();
+    if (adminToken) {
+      authReq = req.clone({
+        setHeaders: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
+    }
+  } else if (isAdminRoute) {
+    // Se estamos em uma rota de admin, usar token admin para todas as requisições do admin
     const adminToken = adminAuthService.getToken();
     if (adminToken) {
       authReq = req.clone({
@@ -92,7 +105,7 @@ export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
-        if (isAdminEndpoint) {
+        if (isAdminRoute) {
           // Token admin expirado
           adminAuthService.logout();
           router.navigate(['/admin/login']);

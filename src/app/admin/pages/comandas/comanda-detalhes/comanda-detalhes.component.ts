@@ -11,6 +11,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
+import { switchMap, map, catchError, shareReplay } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { Comanda } from '../../../../shared/models/comanda.model';
 import { ItemComanda } from '../../../../shared/models/item-comanda.model';
 import { ComandaService } from '../../../../core/services/comanda.service';
@@ -41,12 +43,14 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
         </h1>
       </div>
 
-      <div *ngIf="carregando" class="loading-container">
+      <div *ngIf="!(comanda$ | async); else content" class="loading-container">
         <mat-spinner diameter="60"></mat-spinner>
         <p>Carregando detalhes da comanda...</p>
       </div>
 
-      <div *ngIf="!carregando && comanda" class="content-container">
+      <ng-template #content>
+        <ng-container *ngIf="comanda$ | async as comanda">
+          <div class="content-container">
         <div class="comanda-info-grid">
           <mat-card class="info-card">
             <mat-card-header>
@@ -63,10 +67,6 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
               <div class="info-item">
                 <strong>Celular:</strong>
                 <span>{{ comanda.celular }}</span>
-              </div>
-              <div class="info-item">
-                <strong>ID da Comanda:</strong>
-                <span>{{ comanda.id }}</span>
               </div>
             </mat-card-content>
           </mat-card>
@@ -92,11 +92,11 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
               <div class="dates-info">
                 <div class="info-item">
                   <strong>Criada em:</strong>
-                  <span>{{ comanda.dataCriacao | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+                  <span>{{ comanda.dataCriacao | date: 'dd/MM/yyyy' }}</span>
                 </div>
                 <div *ngIf="comanda.dataEncerramento" class="info-item">
                   <strong>Encerrada em:</strong>
-                  <span>{{ comanda.dataEncerramento | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+                  <span>{{ comanda.dataEncerramento | date: 'dd/MM/yyyy' }}</span>
                 </div>
               </div>
             </mat-card-content>
@@ -110,23 +110,19 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
         </div>
 
         <div class="itens-section">
-          <h2 class="section-title">
-            <mat-icon>shopping_cart</mat-icon>
-            Itens da Comanda ({{ itens.length }})
-          </h2>
+          <ng-container *ngIf="itens$ | async as itens">
+            <h2 class="section-title">
+              <mat-icon>shopping_cart</mat-icon>
+              Itens da Comanda ({{ itens.length }})
+            </h2>
 
-          <div *ngIf="carregandoItens" class="loading">
-            <mat-spinner diameter="40"></mat-spinner>
-            <p>Carregando itens...</p>
-          </div>
+            <div *ngIf="itens.length === 0" class="no-items">
+              <mat-icon>shopping_cart_off</mat-icon>
+              <p>Nenhum item adicionado à comanda</p>
+            </div>
 
-          <div *ngIf="!carregandoItens && itens.length === 0" class="no-items">
-            <mat-icon>shopping_cart_off</mat-icon>
-            <p>Nenhum item adicionado à comanda</p>
-          </div>
-
-          <div *ngIf="!carregandoItens && itens.length > 0" class="itens-table-container">
-            <table mat-table [dataSource]="itens" class="itens-table">
+            <div *ngIf="itens.length > 0" class="itens-table-container">
+              <table mat-table [dataSource]="itens" class="itens-table">
               <ng-container matColumnDef="quantidade">
                 <th mat-header-cell *matHeaderCellDef>Quantidade</th>
                 <td mat-cell *matCellDef="let item">
@@ -178,11 +174,14 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: displayedColumns" class="item-row"></tr>
             </table>
-          </div>
+            </div>
+          </ng-container>
         </div>
-      </div>
+        </div>
+      </ng-container>
+      </ng-template>
 
-      <div *ngIf="!carregando && !comanda" class="error-container">
+      <div *ngIf="(comanda$ | async) === null" class="error-container">
         <mat-card class="error-card">
           <mat-card-content>
             <mat-icon>error</mat-icon>
@@ -200,11 +199,8 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
   styleUrl: './comanda-detalhes.component.scss',
 })
 export class ComandaDetalhesComponent implements OnInit {
-  comanda: Comanda | null = null;
-  itens: ItemComanda[] = [];
-  carregando = true;
-  carregandoItens = false;
-  comandaId!: string;
+  comanda$!: Observable<Comanda | null>;
+  itens$!: Observable<ItemComanda[]>;
   displayedColumns: string[] = ['quantidade', 'nome', 'valorUnitario', 'valorTotal'];
 
   constructor(
@@ -216,57 +212,43 @@ export class ComandaDetalhesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.comandaId = this.route.snapshot.params['id'];
-    if (this.comandaId) {
-      this.carregarComanda();
-    } else {
-      this.carregando = false;
+    const comandaId = this.route.snapshot.params['id'];
+    if (comandaId) {
+      this.comanda$ = this.comandaService.obterComandasCompletas().pipe(
+        map((comandas) => comandas.find((c) => c.id === comandaId) || null),
+        catchError((error) => {
+          console.error('Erro ao carregar comanda:', error);
+          this.snackBar.open('Erro ao carregar comanda', 'Fechar', { 
+            duration: 3000,
+            panelClass: ['error-snackbar']
+          });
+          return of(null);
+        }),
+        shareReplay(1),
+      );
+
+      this.itens$ = this.comanda$.pipe(
+        switchMap((comanda) => {
+          if (!comanda) {
+            return of([]);
+          }
+          return this.comandaService.obterItensComanda(comanda.id).pipe(
+            catchError((error) => {
+              console.error('Erro ao carregar itens:', error);
+              this.snackBar.open('Erro ao carregar itens da comanda', 'Fechar', { 
+                duration: 3000,
+                panelClass: ['error-snackbar']
+              });
+              return of([]);
+            }),
+          );
+        }),
+        shareReplay(1),
+      );
     }
   }
 
-  private carregarComanda(): void {
-    this.comandaService.obterComandasCompletas().subscribe({
-      next: (comandas) => {
-        this.comanda = comandas.find((c) => c.id === this.comandaId) || null;
-        if (this.comanda) {
-          this.carregarItens();
-        }
-        this.carregando = false;
-      },
-      error: (error) => {
-        console.error('Erro ao carregar comanda:', error);
-        this.carregando = false;
-        this.snackBar.open('Erro ao carregar comanda', 'Fechar', { 
-          duration: 3000,
-          panelClass: ['error-snackbar']
-        });
-      },
-    });
-  }
-
-  private carregarItens(): void {
-    if (!this.comanda) return;
-
-    this.carregandoItens = true;
-    this.comandaService.obterItensComanda(this.comanda.id).subscribe({
-      next: (itens: ItemComanda[]) => {
-        this.itens = itens;
-        this.carregandoItens = false;
-      },
-      error: (error: any) => {
-        console.error('Erro ao carregar itens:', error);
-        this.carregandoItens = false;
-        this.snackBar.open('Erro ao carregar itens da comanda', 'Fechar', { 
-          duration: 3000,
-          panelClass: ['error-snackbar']
-        });
-      },
-    });
-  }
-
   encerrarComanda(): void {
-    if (!this.comanda) return;
-
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Encerrar Comanda',
@@ -277,25 +259,30 @@ export class ComandaDetalhesComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed && this.comanda) {
-        this.comandaService.encerrarComandaAdmin(this.comanda.id).subscribe({
-          next: () => {
-            // Atualizar status local
-            if (this.comanda) {
-              this.comanda.status = 'Encerrada' as any;
+      if (confirmed) {
+        this.comanda$.pipe(
+          switchMap((comanda) => {
+            if (!comanda) {
+              return of(null);
             }
-            this.snackBar.open('Comanda encerrada com sucesso!', 'Fechar', {
-              duration: 3000,
-              panelClass: ['success-snackbar'],
-            });
-          },
-          error: (error: any) => {
+            return this.comandaService.encerrarComandaAdmin(comanda.id);
+          }),
+          catchError((error) => {
             console.error('Erro ao encerrar comanda:', error);
             this.snackBar.open('Erro ao encerrar comanda', 'Fechar', {
               duration: 3000,
               panelClass: ['error-snackbar'],
             });
-          },
+            return of(null);
+          }),
+        ).subscribe((result) => {
+          if (result !== null) {
+            this.snackBar.open('Comanda encerrada com sucesso!', 'Fechar', {
+              duration: 3000,
+              panelClass: ['success-snackbar'],
+            });
+            setTimeout(() => location.reload(), 1500);
+          }
         });
       }
     });
@@ -313,11 +300,11 @@ export class ComandaDetalhesComponent implements OnInit {
     if (item.id) {
       this.comandaService.aumentarQuantidade(item.id).subscribe({
         next: () => {
-          this.carregarItens(); // Recarrega os itens para atualizar a exibição
           this.snackBar.open('Quantidade atualizada!', 'OK', { 
             duration: 1500,
             panelClass: ['success-snackbar']
           });
+          setTimeout(() => location.reload(), 1000);
         },
         error: () => {
           this.snackBar.open('Erro ao atualizar quantidade', 'OK', { 
@@ -332,7 +319,6 @@ export class ComandaDetalhesComponent implements OnInit {
   diminuirQuantidade(item: ItemComanda): void {
     if (item.id) {
       if (item.quantidade === 1) {
-        // Se é o último item, confirma remoção com modal
         const dialogRef = this.dialog.open(ConfirmDialogComponent, {
           data: {
             title: 'Remover Item',
@@ -346,11 +332,11 @@ export class ComandaDetalhesComponent implements OnInit {
           if (result && item.id) {
             this.comandaService.removerItem(item.id).subscribe({
               next: () => {
-                this.carregarItens(); // Recarrega os itens
                 this.snackBar.open('Item removido!', 'OK', { 
                   duration: 2000,
                   panelClass: ['success-snackbar']
                 });
+                setTimeout(() => location.reload(), 1000);
               },
               error: () => {
                 this.snackBar.open('Erro ao remover item', 'OK', { 
@@ -364,11 +350,11 @@ export class ComandaDetalhesComponent implements OnInit {
       } else {
         this.comandaService.diminuirQuantidade(item.id).subscribe({
           next: () => {
-            this.carregarItens(); // Recarrega os itens para atualizar a exibição
             this.snackBar.open('Quantidade atualizada!', 'OK', { 
               duration: 1500,
               panelClass: ['success-snackbar']
             });
+            setTimeout(() => location.reload(), 1000);
           },
           error: () => {
             this.snackBar.open('Erro ao atualizar quantidade', 'OK', { 

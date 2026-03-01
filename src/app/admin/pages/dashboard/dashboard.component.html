@@ -35,7 +35,7 @@
             <mat-icon>attach_money</mat-icon>
           </div>
           <div class="stat-info">
-            <h3>{{ formatarPreco((calcularTotalReceita() | async) || 0) }}</h3>
+            <h3>{{ formatarPreco((totalReceita$ | async) || 0) }}</h3>
             <p>Receita Total</p>
           </div>
         </div>

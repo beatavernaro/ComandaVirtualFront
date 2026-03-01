@@ -11,7 +11,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, catchError, shareReplay } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { Comanda } from '../../../shared/models/comanda.model';
 import { ComandaService } from '../../../core/services/comanda.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -38,9 +39,11 @@ export class AdminComandasComponent implements OnInit {
   comandasEncerradas$!: Observable<Comanda[]>;
   totalAbertas$!: Observable<number>;
   totalEncerradas$!: Observable<number>;
+  totalReceitaAbertas$!: Observable<number>;
+  totalReceitaEncerradas$!: Observable<number>;
 
-  displayedColumns: string[] = ['nome', 'status', 'total', 'acoes'];
-  displayedColumnsEncerradas: string[] = ['nome', 'status', 'total', 'acoes'];
+  displayedColumns: string[] = ['nome', 'dataCriacao', 'status', 'total', 'acoes'];
+  displayedColumnsEncerradas: string[] = ['nome', 'dataCriacao', 'dataEncerramento', 'total', 'acoes'];
 
   constructor(
     private comandaService: ComandaService,
@@ -54,19 +57,47 @@ export class AdminComandasComponent implements OnInit {
   }
 
   private carregarComandas(): void {
-    this.comandas$ = this.comandaService.obterComandasCompletas();
+    this.comandas$ = this.comandaService.obterComandasCompletas().pipe(
+      catchError((error) => {
+        console.error('Erro ao carregar comandas:', error);
+        this.snackBar.open('Erro ao carregar comandas. Tente novamente.', 'Fechar', {
+          duration: 5000,
+          panelClass: ['error-snackbar'],
+        });
+        return of([]);
+      }),
+      shareReplay(1),
+    );
 
     this.comandasAbertas$ = this.comandas$.pipe(
       map((comandas) => comandas.filter((c) => c.status === 'ABERTA')),
+      shareReplay(1),
     );
 
     this.comandasEncerradas$ = this.comandas$.pipe(
       map((comandas) => comandas.filter((c) => c.status === 'ENCERRADA')),
+      shareReplay(1),
     );
 
-    this.totalAbertas$ = this.comandasAbertas$.pipe(map((comandas) => comandas.length));
+    this.totalAbertas$ = this.comandasAbertas$.pipe(
+      map((comandas) => comandas.length),
+      shareReplay(1),
+    );
 
-    this.totalEncerradas$ = this.comandasEncerradas$.pipe(map((comandas) => comandas.length));
+    this.totalEncerradas$ = this.comandasEncerradas$.pipe(
+      map((comandas) => comandas.length),
+      shareReplay(1),
+    );
+
+    this.totalReceitaAbertas$ = this.comandasAbertas$.pipe(
+      map((comandas) => comandas.reduce((total, comanda) => total + comanda.valorTotal, 0)),
+      shareReplay(1),
+    );
+
+    this.totalReceitaEncerradas$ = this.comandasEncerradas$.pipe(
+      map((comandas) => comandas.reduce((total, comanda) => total + comanda.valorTotal, 0)),
+      shareReplay(1),
+    );
   }
 
   visualizarComanda(id: number): void {
@@ -113,25 +144,12 @@ export class AdminComandasComponent implements OnInit {
     }).format(preco);
   }
 
-  formatarData(data: Date | string): string {
+  formatarData(data: Date | string | null): string {
+    if (!data) return '-';
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
     }).format(new Date(data));
-  }
-
-  calcularTotalAbertas(): Observable<number> {
-    return this.comandasAbertas$.pipe(
-      map((comandas) => comandas.reduce((total, comanda) => total + comanda.valorTotal, 0)),
-    );
-  }
-
-  calcularTotalEncerradas(): Observable<number> {
-    return this.comandasEncerradas$.pipe(
-      map((comandas) => comandas.reduce((total, comanda) => total + comanda.valorTotal, 0)),
-    );
   }
 }
