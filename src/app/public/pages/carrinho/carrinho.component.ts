@@ -75,10 +75,16 @@ export class CarrinhoComponent implements OnInit {
       if (result && item.id) {
         this.comandaService.removerItem(item.id).subscribe({
           next: () => {
-            this.snackBar.open('Item removido!', 'Fechar', { duration: 2000 });
+            this.snackBar.open('Item removido!', 'Fechar', { 
+              duration: 2000,
+              panelClass: ['success-snackbar']
+            });
           },
           error: () => {
-            this.snackBar.open('Erro ao remover item', 'Fechar', { duration: 3000 });
+            this.snackBar.open('Erro ao remover item', 'Fechar', { 
+              duration: 3000,
+              panelClass: ['error-snackbar']
+            });
           },
         });
       }
@@ -102,7 +108,10 @@ export class CarrinhoComponent implements OnInit {
             this.router.navigate(['/encerrada']);
           },
           error: () => {
-            this.snackBar.open('Erro ao encerrar comanda', 'Fechar', { duration: 3000 });
+            this.snackBar.open('Erro ao encerrar comanda', 'Fechar', { 
+              duration: 3000,
+              panelClass: ['error-snackbar']
+            });
           },
         });
       }
@@ -124,10 +133,16 @@ export class CarrinhoComponent implements OnInit {
     if (item.id) {
       this.comandaService.aumentarQuantidade(item.id).subscribe({
         next: () => {
-          this.snackBar.open('Quantidade atualizada!', 'OK', { duration: 1500 });
+          this.snackBar.open('Quantidade atualizada!', 'OK', { 
+            duration: 1500,
+            panelClass: ['success-snackbar']
+          });
         },
         error: () => {
-          this.snackBar.open('Erro ao atualizar quantidade', 'OK', { duration: 2000 });
+          this.snackBar.open('Erro ao atualizar quantidade', 'OK', { 
+            duration: 2000,
+            panelClass: ['error-snackbar']
+          });
         },
       });
     }
@@ -150,10 +165,16 @@ export class CarrinhoComponent implements OnInit {
           if (result && item.id) {
             this.comandaService.removerItem(item.id).subscribe({
               next: () => {
-                this.snackBar.open('Item removido!', 'OK', { duration: 2000 });
+                this.snackBar.open('Item removido!', 'OK', { 
+                  duration: 2000,
+                  panelClass: ['success-snackbar']
+                });
               },
               error: () => {
-                this.snackBar.open('Erro ao remover item', 'OK', { duration: 3000 });
+                this.snackBar.open('Erro ao remover item', 'OK', { 
+                  duration: 3000,
+                  panelClass: ['error-snackbar']
+                });
               },
             });
           }
@@ -161,10 +182,16 @@ export class CarrinhoComponent implements OnInit {
       } else {
         this.comandaService.diminuirQuantidade(item.id).subscribe({
           next: () => {
-            this.snackBar.open('Quantidade atualizada!', 'OK', { duration: 1500 });
+            this.snackBar.open('Quantidade atualizada!', 'OK', { 
+              duration: 1500,
+              panelClass: ['success-snackbar']
+            });
           },
           error: () => {
-            this.snackBar.open('Erro ao atualizar quantidade', 'OK', { duration: 2000 });
+            this.snackBar.open('Erro ao atualizar quantidade', 'OK', { 
+              duration: 2000,
+              panelClass: ['error-snackbar']
+            });
           },
         });
       }

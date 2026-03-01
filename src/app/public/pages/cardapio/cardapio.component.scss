@@ -6,6 +6,23 @@
   min-height: calc(100vh - 80px);
 }
 
+// Welcome message styles
+.welcome-message {
+  margin-bottom: var(--space-6);
+  text-align: center;
+  
+  h2 {
+    margin: 0;
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    color: var(--gray-800);
+    background: linear-gradient(135deg, var(--primary-red), var(--primary-red-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
 .produtos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));

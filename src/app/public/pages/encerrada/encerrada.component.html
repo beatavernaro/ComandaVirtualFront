@@ -18,13 +18,9 @@
         </div>
 
         <div class="info-row">
-          <span class="label">Data/Hora:</span>
-          <span class="value">{{
-            formatarData(comanda.dataEncerramento || comanda.dataCriacao)
-          }}</span>
+          <span class="label">Celular:</span>
+          <span class="value">{{ comanda.celular }}</span>
         </div>
-
-        <mat-divider class="divider"></mat-divider>
 
         <div class="total-row">
           <span class="total-label">Total a Pagar:</span>
@@ -57,12 +53,6 @@
             <span class="pix-label">Favorecido:</span>
             <span class="pix-value">{{ pixDados.favorecido }}</span>
           </div>
-
-          <div class="pix-row">
-            <span class="pix-label">CNPJ:</span>
-            <span class="pix-value">{{ pixDados.cnpj }}</span>
-          </div>
-
           <div class="pix-row">
             <span class="pix-label">Valor:</span>
             <span class="pix-value highlight">{{ formatarPreco(comanda.valorTotal) }}</span>

@@ -88,60 +88,80 @@ export class StartComponent implements OnInit {
 
   private continueWithExistingComanda(): void {
     this.localStorageService.updateLastActivity();
-    this.snackBar.open('Continuando com sua comanda...', 'Fechar', { duration: 3000 });
+    this.snackBar.open('Continuando com sua comanda...', 'Fechar', { 
+      duration: 3000,
+      panelClass: ['success-snackbar']
+    });
     this.router.navigate(['/cardapio']);
     this.loading = false;
   }
 
   private checkExistingComanda(nomeCliente: string, celular: string): void {
-    this.comandaService.buscarComandaPorCelular(celular).subscribe({
+    // Primeiro: tentar reconectar à comanda existente (já obtém novo token)
+    this.comandaService.reconectarComanda(nomeCliente, celular).subscribe({
       next: (comanda) => {
-        if (comanda) {
-          // Comanda encontrada - salvar dados e continuar
-          this.localStorageService.saveUserData({
-            nomeCliente,
-            celular,
-            comandaId: comanda.id
-          });
-          this.snackBar.open('Comanda encontrada! Continuando...', 'Fechar', { duration: 3000 });
+        // Comanda reconectada com sucesso - salvar dados
+        const currentUserData = this.localStorageService.getUserData();
+        
+        this.localStorageService.saveUserData({
+          ...currentUserData, // Preserva dados existentes incluindo o novo token
+          nomeCliente,
+          celular,
+          comandaId: comanda.id
+        });
+        this.snackBar.open('Comanda recuperada com sucesso!', 'Fechar', { 
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+        this.loading = false;
+        // Aguardar um pouco para garantir que os dados foram salvos antes de navegar
+        setTimeout(() => {
           this.router.navigate(['/cardapio']);
-        } else {
-          // Nenhuma comanda encontrada - criar nova
-          this.createNewComanda(nomeCliente, celular);
-        }
+        }, 100);
       },
       error: (error) => {
-        console.error('Erro ao verificar comanda existente:', error);
-        // Em caso de erro, tentar criar nova comanda
+        console.error('Erro ao reconectar comanda:', error);
+        // Se der erro na reconexão, tentar criar nova comanda
         this.createNewComanda(nomeCliente, celular);
-      },
-      complete: () => {
-        this.loading = false;
       }
     });
   }
 
   private createNewComanda(nomeCliente: string, celular: string): void {
+    // LIMPAR TUDO DA SESSÃO ANTERIOR ANTES DE CRIAR NOVA COMANDA
+    this.comandaService.limparSessaoComanda();
+    
     this.comandaService.criarNovaComanda(nomeCliente, celular).subscribe({
       next: (comanda) => {
-        // Dados do usuário já são salvos no ComandaService (incluindo o token)
-        // Apenas atualizar os dados locais com o ID da comanda
+        // O token JWT já foi salvo automaticamente pelo service
+        // Agora só precisamos atualizar os dados existentes com o ID da comanda
+        const currentUserData = this.localStorageService.getUserData();
+        
         this.localStorageService.saveUserData({
+          ...currentUserData, // Preserva dados existentes incluindo accessToken
           nomeCliente,
           celular,
           comandaId: comanda.id
         });
-        this.snackBar.open('Comanda criada com sucesso!', 'Fechar', { duration: 3000 });
-        this.router.navigate(['/cardapio']);
+        
+        this.snackBar.open('Comanda criada com sucesso!', 'Fechar', { 
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+        this.loading = false;
+        
+        // Aguardar um pouco para garantir que todos os dados foram salvos e processados
+        setTimeout(() => {
+          this.router.navigate(['/cardapio']);
+        }, 200);
       },
       error: (error) => {
         console.error('Erro ao criar comanda:', error);
+        this.loading = false;
         this.snackBar.open('Erro ao criar comanda. Tente novamente.', 'Fechar', {
           duration: 5000,
+          panelClass: ['error-snackbar']
         });
-      },
-      complete: () => {
-        this.loading = false;
       }
     });
   }
@@ -156,17 +176,20 @@ export class StartComponent implements OnInit {
     } else {
       this.snackBar.open('Por favor, informe um celular válido para recuperar a comanda', 'Fechar', {
         duration: 5000,
+        panelClass: ['error-snackbar']
       });
     }
   }
 
   onClearSession(): void {
-    this.localStorageService.clearUserData();
+    // Usar o método do serviço para limpar tudo
+    this.comandaService.limparSessaoComanda();
     this.hasActiveSession = false;
     this.userData = null;
     this.form.reset();
     this.snackBar.open('Dados limpos. Você pode iniciar uma nova comanda.', 'Fechar', {
       duration: 3000,
+      panelClass: ['success-snackbar']
     });
   }
 

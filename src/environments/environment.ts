@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://comandavirtual-api-afbqgkhqc5c0dwbd.brazilsouth-01.azurewebsites.net/api',
+  apiUrl: 'https://api.meeplepay.com.br/api',
 };

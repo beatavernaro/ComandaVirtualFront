@@ -18,7 +18,7 @@ export class LocalStorageService {
   constructor() {}
 
   /**
-   * Salva dados do usuário no localStorage
+   * Salva dados do usuário no sessionStorage
    */
   saveUserData(userData: UserData): void {
     const dataToSave: UserData = {
@@ -27,19 +27,36 @@ export class LocalStorageService {
     };
     
     try {
-      localStorage.setItem(this.USER_DATA_KEY, JSON.stringify(dataToSave));
+      sessionStorage.setItem(this.USER_DATA_KEY, JSON.stringify(dataToSave));
     } catch (error) {
       console.error('Erro ao salvar dados do usuário:', error);
     }
   }
 
   /**
-   * Recupera dados do usuário do localStorage
+   * Recupera dados do usuário do sessionStorage
    */
   getUserData(): UserData | null {
     try {
-      const data = localStorage.getItem(this.USER_DATA_KEY);
-      return data ? JSON.parse(data) : null;
+      const data = sessionStorage.getItem(this.USER_DATA_KEY);
+      if (!data) return null;
+      
+      const userData = JSON.parse(data);
+      
+      // Verificar se os dados não expiraram (24 horas)
+      if (userData.lastActivity) {
+        const lastActivity = new Date(userData.lastActivity);
+        const now = new Date();
+        const diffHours = (now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60);
+        
+        if (diffHours > 24) {
+          // Dados expirados - limpar
+          this.clearUserData();
+          return null;
+        }
+      }
+      
+      return userData;
     } catch (error) {
       console.error('Erro ao recuperar dados do usuário:', error);
       return null;
@@ -70,7 +87,7 @@ export class LocalStorageService {
    */
   clearUserData(): void {
     try {
-      localStorage.removeItem(this.USER_DATA_KEY);
+      sessionStorage.removeItem(this.USER_DATA_KEY);
     } catch (error) {
       console.error('Erro ao limpar dados do usuário:', error);
     }
@@ -91,17 +108,19 @@ export class LocalStorageService {
    */
   saveAccessToken(token: string): void {
     const userData = this.getUserData();
-    if (userData) {
-      const expirationTime = new Date();
-      expirationTime.setHours(expirationTime.getHours() + 24); // Token expira em 24h
-      
-      const updatedData: UserData = {
-        ...userData,
-        accessToken: token,
-        tokenExpiration: expirationTime.toISOString()
-      };
-      
-      this.saveUserData(updatedData);
+    const expirationTime = new Date();
+    expirationTime.setHours(expirationTime.getHours() + 24); // Token expira em 24h
+    
+    const updatedData: UserData = {
+      ...(userData || {}), // Se userData for null, usar objeto vazio
+      accessToken: token,
+      tokenExpiration: expirationTime.toISOString()
+    } as UserData;
+    
+    try {
+      sessionStorage.setItem(this.USER_DATA_KEY, JSON.stringify(updatedData));
+    } catch (error) {
+      console.error('Erro ao salvar token:', error);
     }
   }
 

@@ -340,3 +340,21 @@ textarea {
 .mat-mdc-dialog-surface {
   background: white !important;
 }
+
+// Bottom Sheet customizations
+.custom-bottom-sheet {
+  .mat-bottom-sheet-container {
+    background: white !important;
+    opacity: 1 !important;
+    
+    .bottom-sheet-content {
+      background: white !important;
+      opacity: 1 !important;
+    }
+  }
+}
+
+.mat-bottom-sheet-container {
+  background: white !important;
+  opacity: 1 !important;
+}

@@ -17,6 +17,9 @@
   box-shadow: var(--shadow-lg);
 
   mat-card-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
     padding: var(--space-8) var(--space-6) var(--space-4);
 
@@ -29,12 +32,19 @@
       font-weight: 700;
       color: var(--gray-900);
       margin: 0;
+
+      .logo-icon {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+      }
     }
 
     mat-card-subtitle {
       margin-top: var(--space-2);
       color: var(--gray-600);
       font-size: var(--text-base);
+      text-align: center;
     }
   }
 

@@ -215,6 +215,58 @@
         }
       }
     },
+    "/api/comandas/reconectar": {
+      "post": {
+        "tags": [
+          "Comandas"
+        ],
+        "summary": "Reconectar a uma comanda existente obtendo novo token de acesso",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateComandaRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateComandaRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateComandaRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reconexão realizada com sucesso",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateComandaResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateComandaResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateComandaResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Comanda não encontrada para os dados informados"
+          }
+        }
+      }
+    },
     "/api/comandas/celular/{celular}": {
       "get": {
         "tags": [

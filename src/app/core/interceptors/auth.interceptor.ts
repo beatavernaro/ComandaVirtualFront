@@ -26,8 +26,7 @@ export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
   // Endpoints completamente públicos (sem token)
   const publicEndpoints = [
     '/api/comandas/celular/',
-    '/api/comandas/', // POST criar comanda é público
-    '/api/produtos/ativos'
+    '/api/comandas/' // POST criar comanda é público
   ];
 
   const isAdminEndpoint = adminEndpoints.some(endpoint => 

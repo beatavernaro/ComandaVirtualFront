@@ -62,9 +62,9 @@
 // Info rows
 .info-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-3);
+  gap: var(--space-2);
   
   &:last-child {
     margin-bottom: 0;
@@ -444,5 +444,44 @@
     max-width: 640px;
     margin: 0 auto;
     padding: var(--space-8);
+  }
+}
+
+// Snackbar customization
+::ng-deep {
+  .mat-mdc-snack-bar-container {
+    opacity: 1 !important;
+  }
+
+  .mat-mdc-snack-bar-container.snackbar-success {
+    .mdc-snackbar__surface {
+      background-color: #10b981 !important;
+      opacity: 1 !important;
+    }
+
+    .mat-mdc-snack-bar-label {
+      color: white !important;
+      opacity: 1 !important;
+    }
+
+    .mat-mdc-button {
+      color: white !important;
+    }
+  }
+
+  .mat-mdc-snack-bar-container.snackbar-error {
+    .mdc-snackbar__surface {
+      background-color: #ef4444 !important;
+      opacity: 1 !important;
+    }
+
+    .mat-mdc-snack-bar-label {
+      color: white !important;
+      opacity: 1 !important;
+    }
+
+    .mat-mdc-button {
+      color: white !important;
+    }
   }
 }

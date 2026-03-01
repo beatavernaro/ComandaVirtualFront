@@ -51,15 +51,24 @@ export class AdminLoginComponent {
       this.adminAuthService.login(email, password).subscribe({
         next: (result) => {
           if (result.success) {
-            this.snackBar.open('Login realizado com sucesso!', 'Fechar', { duration: 3000 });
+            this.snackBar.open('Login realizado com sucesso!', 'Fechar', { 
+              duration: 3000,
+              panelClass: ['success-snackbar']
+            });
             this.router.navigate(['/admin/dashboard']);
           } else {
-            this.snackBar.open('Email ou senha inválidos', 'Fechar', { duration: 5000 });
+            this.snackBar.open('Email ou senha inválidos', 'Fechar', { 
+              duration: 5000,
+              panelClass: ['error-snackbar']
+            });
             this.loading = false;
           }
         },
         error: () => {
-          this.snackBar.open('Erro no servidor. Tente novamente.', 'Fechar', { duration: 5000 });
+          this.snackBar.open('Erro no servidor. Tente novamente.', 'Fechar', { 
+            duration: 5000,
+            panelClass: ['error-snackbar']
+          });
           this.loading = false;
         },
       });

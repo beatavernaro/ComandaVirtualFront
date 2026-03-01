@@ -236,7 +236,10 @@ export class ComandaDetalhesComponent implements OnInit {
       error: (error) => {
         console.error('Erro ao carregar comanda:', error);
         this.carregando = false;
-        this.snackBar.open('Erro ao carregar comanda', 'Fechar', { duration: 3000 });
+        this.snackBar.open('Erro ao carregar comanda', 'Fechar', { 
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
       },
     });
   }
@@ -253,7 +256,10 @@ export class ComandaDetalhesComponent implements OnInit {
       error: (error: any) => {
         console.error('Erro ao carregar itens:', error);
         this.carregandoItens = false;
-        this.snackBar.open('Erro ao carregar itens da comanda', 'Fechar', { duration: 3000 });
+        this.snackBar.open('Erro ao carregar itens da comanda', 'Fechar', { 
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
       },
     });
   }
@@ -308,10 +314,16 @@ export class ComandaDetalhesComponent implements OnInit {
       this.comandaService.aumentarQuantidade(item.id).subscribe({
         next: () => {
           this.carregarItens(); // Recarrega os itens para atualizar a exibição
-          this.snackBar.open('Quantidade atualizada!', 'OK', { duration: 1500 });
+          this.snackBar.open('Quantidade atualizada!', 'OK', { 
+            duration: 1500,
+            panelClass: ['success-snackbar']
+          });
         },
         error: () => {
-          this.snackBar.open('Erro ao atualizar quantidade', 'OK', { duration: 2000 });
+          this.snackBar.open('Erro ao atualizar quantidade', 'OK', { 
+            duration: 2000,
+            panelClass: ['error-snackbar']
+          });
         },
       });
     }
@@ -335,10 +347,16 @@ export class ComandaDetalhesComponent implements OnInit {
             this.comandaService.removerItem(item.id).subscribe({
               next: () => {
                 this.carregarItens(); // Recarrega os itens
-                this.snackBar.open('Item removido!', 'OK', { duration: 2000 });
+                this.snackBar.open('Item removido!', 'OK', { 
+                  duration: 2000,
+                  panelClass: ['success-snackbar']
+                });
               },
               error: () => {
-                this.snackBar.open('Erro ao remover item', 'OK', { duration: 3000 });
+                this.snackBar.open('Erro ao remover item', 'OK', { 
+                  duration: 3000,
+                  panelClass: ['error-snackbar']
+                });
               },
             });
           }
@@ -347,10 +365,16 @@ export class ComandaDetalhesComponent implements OnInit {
         this.comandaService.diminuirQuantidade(item.id).subscribe({
           next: () => {
             this.carregarItens(); // Recarrega os itens para atualizar a exibição
-            this.snackBar.open('Quantidade atualizada!', 'OK', { duration: 1500 });
+            this.snackBar.open('Quantidade atualizada!', 'OK', { 
+              duration: 1500,
+              panelClass: ['success-snackbar']
+            });
           },
           error: () => {
-            this.snackBar.open('Erro ao atualizar quantidade', 'OK', { duration: 2000 });
+            this.snackBar.open('Erro ao atualizar quantidade', 'OK', { 
+              duration: 2000,
+              panelClass: ['error-snackbar']
+            });
           },
         });
       }

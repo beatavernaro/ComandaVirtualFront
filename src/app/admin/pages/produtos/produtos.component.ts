@@ -256,7 +256,10 @@ export class AdminProdutosComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Erro ao carregar produtos:', error);
-        this.snackBar.open('Erro ao carregar produtos', 'Fechar', { duration: 3000 });
+        this.snackBar.open('Erro ao carregar produtos', 'Fechar', { 
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
       },
     });
   }
@@ -310,12 +313,18 @@ export class AdminProdutosComponent implements OnInit, OnDestroy {
             this.snackBar.open(
               `Produto ${produto.ativo ? 'ativado' : 'desativado'} com sucesso`,
               'Fechar',
-              { duration: 3000 },
+              { 
+                duration: 3000,
+                panelClass: ['success-snackbar']
+              },
             );
           },
           error: (error) => {
             console.error(`Erro ao ${acao} produto:`, error);
-            this.snackBar.open(`Erro ao ${acao} produto`, 'Fechar', { duration: 3000 });
+            this.snackBar.open(`Erro ao ${acao} produto`, 'Fechar', { 
+              duration: 3000,
+              panelClass: ['error-snackbar']
+            });
           },
         });
       }

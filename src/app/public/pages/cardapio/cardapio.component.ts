@@ -24,7 +24,9 @@ import { Produto } from '../../../shared/models/produto.model';
 import { ItemComanda } from '../../../shared/models/item-comanda.model';
 import { ProdutoService } from '../../../core/services/produto.service';
 import { ComandaService } from '../../../core/services/comanda.service';
+import { LocalStorageService } from '../../../core/services/local-storage.service';
 import { HeaderComponent } from '../../../shared/components/header/header.component';
+import { CreateProdutoRequest } from '../../../shared/models/api.interfaces';
 
 @Component({
   selector: 'app-add-item-manual',
@@ -64,6 +66,18 @@ import { HeaderComponent } from '../../../shared/components/header/header.compon
     `
       .bottom-sheet-content {
         padding: 24px;
+        background: white !important;
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        min-height: 200px;
+        position: relative;
+        z-index: 1000;
+      }
+      .bottom-sheet-content h3 {
+        margin: 0 0 20px 0;
+        color: #333 !important;
+        font-size: 1.25rem;
+        font-weight: 600;
       }
       .full-width {
         width: 100%;
@@ -75,6 +89,16 @@ import { HeaderComponent } from '../../../shared/components/header/header.compon
         gap: 8px;
         margin-top: 16px;
       }
+      mat-form-field {
+        width: 100%;
+      }
+      .mat-mdc-form-field {
+        width: 100%;
+      }
+      input {
+        background: white !important;
+        color: #333 !important;
+      }
     `,
   ],
 })
@@ -85,6 +109,7 @@ export class AddItemManualComponent {
     private fb: FormBuilder,
     private bottomSheet: MatBottomSheet,
     private comandaService: ComandaService,
+    private produtoService: ProdutoService,
     private snackBar: MatSnackBar,
   ) {
     this.form = this.fb.group({
@@ -96,22 +121,43 @@ export class AddItemManualComponent {
   onSubmit(): void {
     if (this.form.valid) {
       const { nome, preco } = this.form.value;
-      // Para itens manuais, criar um produto temporário com origem MANUAL
-      // O backend deve lidar com itens sem produtoId como manuais
-      this.comandaService
-        .adicionarItem(
-          0, // produtoId 0 indica item manual
-          1 // quantidade
-        )
-        .subscribe({
-          next: () => {
-            this.snackBar.open('Item adicionado!', 'Fechar', { duration: 2000 });
-            this.bottomSheet.dismiss();
-          },
-          error: () => {
-            this.snackBar.open('Erro ao adicionar item', 'Fechar', { duration: 3000 });
-          },
-        });
+      
+      // Primeiro: criar o produto
+      const produtoData: CreateProdutoRequest = {
+        nome,
+        preco: Number(preco),
+        categoria: 'MANUAL' // Categoria específica para produtos manuais
+      };
+      
+      this.produtoService.criarProduto(produtoData).subscribe({
+        next: (produtoCriado) => {
+          // Segundo: adicionar o produto criado na comanda
+          this.comandaService.adicionarItem(
+            produtoCriado.id, // usar o ID do produto recém-criado
+            1 // quantidade
+          ).subscribe({
+            next: () => {
+              this.snackBar.open('Item adicionado!', 'Fechar', { 
+                duration: 2000,
+                panelClass: ['success-snackbar']
+              });
+              this.bottomSheet.dismiss();
+            },
+            error: () => {
+              this.snackBar.open('Erro ao adicionar item na comanda', 'Fechar', { 
+                duration: 3000,
+                panelClass: ['error-snackbar']
+              });
+            }
+          });
+        },
+        error: () => {
+          this.snackBar.open('Erro ao criar produto', 'Fechar', { 
+            duration: 3000,
+            panelClass: ['error-snackbar']
+          });
+        }
+      });
     }
   }
 
@@ -147,16 +193,37 @@ export class CardapioComponent implements OnInit {
   itensComanda$!: Observable<ItemComanda[]>;
   totalItens = 0;
   searchControl = new FormControl('');
+  nomeUsuario = '';
+  
+  // Feature flag para produto manual (desabilitado por enquanto)
+  readonly produtoManualHabilitado = false;
 
   constructor(
     private produtoService: ProdutoService,
     private comandaService: ComandaService,
+    private localStorageService: LocalStorageService,
     private bottomSheet: MatBottomSheet,
     private snackBar: MatSnackBar,
     private router: Router,
   ) {}
 
   ngOnInit(): void {
+    // Obter nome do usuário da sessão
+    const userData = this.localStorageService.getUserData();
+    this.nomeUsuario = userData?.nomeCliente || 'Cliente';
+
+    // Garantir que a comanda esteja carregada
+    this.comandaService.garantirComandaAtiva().subscribe({
+      next: (comanda) => {
+        // Comanda ativa confirmada
+      },
+      error: (error) => {
+        console.error('Erro ao carregar comanda ativa:', error);
+        // Redirecionar para início se não conseguir carregar comanda
+        this.router.navigate(['/start']);
+      }
+    });
+
     this.produtos$ = this.produtoService
       .obterProdutosAtivos()
       .pipe(map((produtos) => produtos.sort((a, b) => a.nome.localeCompare(b.nome))));
@@ -185,16 +252,13 @@ export class CardapioComponent implements OnInit {
   }
 
   adicionarProduto(produto: Produto): void {
-    console.log('Tentando adicionar produto:', produto);
-
     this.comandaService
       .adicionarItem(
-        parseInt(produto.id), // produtoId convertido para number
+        produto.id, // produtoId como string - sem conversão
         1 // quantidade
       )
       .subscribe({
         next: (item) => {
-          console.log('Produto adicionado com sucesso:', item);
           this.snackBar
             .open(`✓ ${produto.nome} adicionado à comanda!`, 'Ver Comanda', {
               duration: 3000,
@@ -220,7 +284,20 @@ export class CardapioComponent implements OnInit {
   }
 
   abrirItemManual(): void {
-    this.bottomSheet.open(AddItemManualComponent);
+    // Feature flag verificada - funcionalidade desabilitada por enquanto
+    if (!this.produtoManualHabilitado) {
+      this.snackBar.open('Funcionalidade em desenvolvimento', 'OK', { 
+        duration: 2000,
+        panelClass: ['success-snackbar']
+      });
+      return;
+    }
+    
+    this.bottomSheet.open(AddItemManualComponent, {
+      hasBackdrop: true,
+      disableClose: false,
+      panelClass: 'custom-bottom-sheet'
+    });
   }
 
   onNavClick(route: string): void {
