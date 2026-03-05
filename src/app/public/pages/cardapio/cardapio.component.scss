@@ -2,24 +2,77 @@
 .cardapio-container {
   padding: var(--space-6);
   max-width: 1200px;
-  margin: 80px auto 0;
-  min-height: calc(100vh - 80px);
+  margin: 126px auto 0;
+  min-height: calc(100vh - 126px);
 }
 
-// Welcome message styles
-.welcome-message {
-  margin-bottom: var(--space-6);
-  text-align: center;
-  
-  h2 {
-    margin: 0;
-    font-size: var(--text-2xl);
+// Categorias Tab Styles
+.categorias-scroll-container {
+  position: fixed;
+  top: 70px;
+  left: 0;
+  right: 0;
+  background-color: var(--white);
+  border-bottom: var(--border-width) solid var(--border-color);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-300) var(--gray-100);
+  z-index: 999;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: var(--gray-100);
+    border-radius: 2px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--gray-300);
+    border-radius: 2px;
+
+    &:hover {
+      background-color: var(--gray-400);
+    }
+  }
+}
+
+.categorias-tabs {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-6);
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  min-width: min-content;
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.categoria-tab {
+  padding: var(--space-3) var(--space-5);
+  border: var(--border-width) solid var(--border-color);
+  background-color: var(--white);
+  color: var(--gray-700);
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    border-color: var(--primary-red);
+    color: var(--primary-red);
+  }
+
+  &.ativa {
+    background-color: var(--primary-red);
+    color: var(--white);
+    border-color: var(--primary-red);
     font-weight: 600;
-    color: var(--gray-800);
-    background: linear-gradient(135deg, var(--primary-red), var(--primary-red-dark));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
   }
 }
 
@@ -178,10 +231,14 @@
 
 // Mobile-first responsive design
 @media (max-width: 480px) {
+  .categorias-scroll-container {
+    top: 150px;
+  }
+
   .cardapio-container {
     padding: var(--space-6);
-    margin-top: 150px;
-    min-height: calc(100vh - 140px);
+    margin-top: calc(150px + 56px);
+    min-height: calc(100vh - 206px);
   }
 
   .produtos-grid {
@@ -235,9 +292,13 @@
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
+  .categorias-scroll-container {
+    top: 120px;
+  }
+
   .cardapio-container {
     padding: var(--space-4) var(--space-2) var(--space-2);
-    margin-top: 100px;
+    margin-top: calc(120px + 56px);
   }
 
   .produtos-grid {
@@ -251,12 +312,28 @@
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
+  .categorias-scroll-container {
+    top: 70px;
+  }
+
+  .cardapio-container {
+    margin-top: 126px;
+  }
+
   .produtos-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (min-width: 1025px) {
+  .categorias-scroll-container {
+    top: 70px;
+  }
+
+  .cardapio-container {
+    margin-top: 126px;
+  }
+
   .produtos-grid {
     grid-template-columns: repeat(3, 1fr);
   }
