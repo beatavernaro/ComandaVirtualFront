@@ -25,40 +25,20 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
     <div class="header-container">
       <mat-toolbar class="custom-toolbar">
         <div class="toolbar-content">
-          <div class="nav-buttons">
-            <button
-              mat-stroked-button
-              class="nav-btn"
-              [class.active]="currentRoute === 'cardapio'"
-              (click)="onNavClick('cardapio')"
-            >
-              <mat-icon>restaurant_menu</mat-icon>
-              Cardápio
-            </button>
-
-            <button
-              mat-stroked-button
-              class="nav-btn"
-              [class.active]="currentRoute === 'carrinho'"
-              (click)="onNavClick('carrinho')"
-            >
-              Comanda
-              @if (totalItens > 0) {
-                <span class="badge">{{ totalItens }}</span>
-              }
-            </button>
+          <div class="header-greeting">
+            <h2 class="greeting-text">Olá, {{ nomeCliente }}</h2>
           </div>
 
           @if (showSearchField) {
-            <mat-form-field appearance="outline" class="search-field">
+            <div class="search-wrapper">
+              <mat-icon class="search-icon">search</mat-icon>
               <input
-                matInput
+                class="search-input"
                 [formControl]="searchControl"
                 placeholder="Buscar produtos..."
                 (input)="onSearchChange($event)"
               />
-              <mat-icon matSuffix>search</mat-icon>
-            </mat-form-field>
+            </div>
           }
         </div>
       </mat-toolbar>
@@ -67,17 +47,11 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
   styleUrl: './header.component.scss',
 })
 export class HeaderComponent {
-  @Input() currentRoute: string = '';
-  @Input() totalItens: number = 0;
+  @Input() nomeCliente: string = 'Cliente';
   @Input() showSearchField: boolean = true;
-  @Output() navClick = new EventEmitter<string>();
   @Output() searchChange = new EventEmitter<string>();
 
   searchControl = new FormControl('');
-
-  onNavClick(route: string): void {
-    this.navClick.emit(route);
-  }
 
   onSearchChange(event: Event): void {
     const target = event.target as HTMLInputElement;

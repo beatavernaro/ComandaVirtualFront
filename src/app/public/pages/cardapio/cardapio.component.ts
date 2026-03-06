@@ -26,6 +26,7 @@ import { ProdutoService } from '../../../core/services/produto.service';
 import { ComandaService } from '../../../core/services/comanda.service';
 import { LocalStorageService } from '../../../core/services/local-storage.service';
 import { HeaderComponent } from '../../../shared/components/header/header.component';
+import { FooterNavComponent } from '../../../shared/components/footer-nav/footer-nav.component';
 import { CreateProdutoRequest } from '../../../shared/models/api.interfaces';
 
 @Component({
@@ -183,6 +184,7 @@ export class AddItemManualComponent {
     MatSnackBarModule,
     MatDividerModule,
     HeaderComponent,
+    FooterNavComponent,
   ],
   templateUrl: './cardapio.component.html',
   styleUrl: './cardapio.component.scss',

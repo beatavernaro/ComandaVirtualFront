@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--primary-red) 0%, var(--primary-red-dark) 100%);
+  background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-dark) 100%);
 }
 
 // Main card
@@ -68,12 +68,12 @@
   height: 48px;
   font-size: var(--text-base);
   font-weight: 600;
-  background-color: var(--primary-red) !important;
+  background-color: var(--primary-green) !important;
   color: var(--white) !important;
   transition: all 0.15s ease;
 
   &:hover {
-    background-color: var(--primary-red-dark) !important;
+    background-color: var(--primary-green-dark) !important;
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
   }
@@ -109,7 +109,7 @@ mat-form-field {
       }
 
       &.mdc-text-field--focused .mdc-notched-outline {
-        border-color: var(--primary-red);
+        border-color: var(--primary-green);
       }
     }
   }

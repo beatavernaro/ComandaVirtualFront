@@ -2,48 +2,34 @@
 .cardapio-container {
   padding: var(--space-6);
   max-width: 1200px;
-  margin: 126px auto 0;
-  min-height: calc(100vh - 126px);
+  margin: -12px auto 100px;
+  min-height: calc(100vh - 300px);
+  background-color: var(--white) !important;
 }
 
 // Categorias Tab Styles
 .categorias-scroll-container {
-  position: fixed;
-  top: 70px;
+  position: sticky;
+  top: 90px;
+  margin-top: 90px;
   left: 0;
   right: 0;
   background-color: var(--white);
-  border-bottom: var(--border-width) solid var(--border-color);
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: var(--gray-300) var(--gray-100);
+  scrollbar-width: none;
   z-index: 999;
 
   &::-webkit-scrollbar {
-    height: 4px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background-color: var(--gray-100);
-    border-radius: 2px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: var(--gray-300);
-    border-radius: 2px;
-
-    &:hover {
-      background-color: var(--gray-400);
-    }
+    display: none;
   }
 }
 
 .categorias-tabs {
   display: flex;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-6);
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2);
   flex-wrap: nowrap;
   white-space: nowrap;
   min-width: min-content;
@@ -64,14 +50,14 @@
   flex-shrink: 0;
 
   &:hover {
-    border-color: var(--primary-red);
-    color: var(--primary-red);
+    border-color: var(--primary-green);
+    color: var(--primary-green);
   }
 
   &.ativa {
-    background-color: var(--primary-red);
+    background-color: var(--primary-green);
     color: var(--white);
-    border-color: var(--primary-red);
+    border-color: var(--primary-green);
     font-weight: 600;
   }
 }
@@ -117,14 +103,14 @@
 .produto-preco {
   font-size: var(--text-xl);
   font-weight: 700;
-  color: var(--primary-red);
+  color: var(--primary-green);
   white-space: nowrap;
 }
 
 .add-button {
   width: 100%;
   height: 44px;
-  background-color: var(--primary-red) !important;
+  background-color: var(--primary-green) !important;
   color: var(--white) !important;
   font-weight: 500;
   font-size: var(--text-sm);
@@ -136,7 +122,7 @@
   transition: all 0.15s ease;
 
   &:hover {
-    background-color: var(--primary-red-dark) !important;
+    background-color: var(--primary-green-dark) !important;
   }
 
   mat-icon {
@@ -232,13 +218,14 @@
 // Mobile-first responsive design
 @media (max-width: 480px) {
   .categorias-scroll-container {
-    top: 150px;
+    top: 110px;
+    margin-top: 135px;
   }
 
   .cardapio-container {
-    padding: var(--space-6);
-    margin-top: calc(150px + 56px);
-    min-height: calc(100vh - 206px);
+    padding: var(--space-4);
+    margin: -10px auto 100px;
+    min-height: calc(100vh - 320px);
   }
 
   .produtos-grid {
@@ -293,12 +280,13 @@
 
 @media (min-width: 481px) and (max-width: 768px) {
   .categorias-scroll-container {
-    top: 120px;
+    top: 90px;
+    margin-top: 90px;
   }
 
   .cardapio-container {
     padding: var(--space-4) var(--space-2) var(--space-2);
-    margin-top: calc(120px + 56px);
+    margin: 0 auto 100px;
   }
 
   .produtos-grid {
@@ -313,11 +301,12 @@
 
 @media (min-width: 769px) and (max-width: 1024px) {
   .categorias-scroll-container {
-    top: 70px;
+    top: 90px;
+    margin-top: 90px;
   }
 
   .cardapio-container {
-    margin-top: 126px;
+    margin: 0 auto 100px;
   }
 
   .produtos-grid {
@@ -327,11 +316,12 @@
 
 @media (min-width: 1025px) {
   .categorias-scroll-container {
-    top: 70px;
+    top: 90px;
+    margin-top: 90px;
   }
 
   .cardapio-container {
-    margin-top: 126px;
+    margin: 0 auto 100px;
   }
 
   .produtos-grid {

@@ -1,11 +1,16 @@
 <app-header
-  currentRoute="cardapio"
-  [totalItens]="totalItens"
+  [nomeCliente]="nomeUsuario"
   [showSearchField]="true"
-  (navClick)="onNavClick($event)"
   (searchChange)="onSearchChange($event)"
 >
 </app-header>
+
+<app-footer-nav
+  currentRoute="cardapio"
+  [totalItens]="totalItens"
+  (navClick)="onNavClick($event)"
+>
+</app-footer-nav>
 
 <!-- Abas de Categorias com Scroll Horizontal -->
 <div class="categorias-scroll-container">

@@ -1,10 +1,15 @@
 <app-header
-  [currentRoute]="'carrinho'"
-  [totalItens]="getTotalItens()"
+  [nomeCliente]="nomeUsuario"
   [showSearchField]="false"
-  (navClick)="onNavClick($event)"
 >
 </app-header>
+
+<app-footer-nav
+  currentRoute="carrinho"
+  [totalItens]="totalItens"
+  (navClick)="onNavClick($event)"
+>
+</app-footer-nav>
 
 <div class="carrinho-container">
   @if (itensComanda$ | async; as itens) {
