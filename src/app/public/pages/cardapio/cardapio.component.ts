@@ -26,6 +26,7 @@ import { ProdutoService } from '../../../core/services/produto.service';
 import { ComandaService } from '../../../core/services/comanda.service';
 import { LocalStorageService } from '../../../core/services/local-storage.service';
 import { HeaderComponent } from '../../../shared/components/header/header.component';
+import { FooterNavComponent } from '../../../shared/components/footer-nav/footer-nav.component';
 import { CreateProdutoRequest } from '../../../shared/models/api.interfaces';
 
 @Component({
@@ -183,6 +184,7 @@ export class AddItemManualComponent {
     MatSnackBarModule,
     MatDividerModule,
     HeaderComponent,
+    FooterNavComponent,
   ],
   templateUrl: './cardapio.component.html',
   styleUrl: './cardapio.component.scss',
@@ -190,9 +192,11 @@ export class AddItemManualComponent {
 export class CardapioComponent implements OnInit {
   produtos$!: Observable<Produto[]>;
   produtosFiltrados$!: Observable<Produto[]>;
+  categorias$!: Observable<string[]>;
   itensComanda$!: Observable<ItemComanda[]>;
   totalItens = 0;
   searchControl = new FormControl('');
+  categoriaSelecionada = new FormControl<string>('TODOS');
   nomeUsuario = '';
   
   // Feature flag para produto manual (desabilitado por enquanto)
@@ -228,19 +232,39 @@ export class CardapioComponent implements OnInit {
       .obterProdutosAtivos()
       .pipe(map((produtos) => produtos.sort((a, b) => a.nome.localeCompare(b.nome))));
 
-    // Combina produtos com filtro de busca
+    // Extrair categorias únicas dos produtos
+    this.categorias$ = this.produtos$.pipe(
+      map((produtos) => {
+        const categorias = Array.from(
+          new Set(produtos.map((p) => p.categoria).filter((c) => c))
+        ).sort();
+        return ['TODOS', ...categorias];
+      }),
+    );
+
+    // Combina produtos com filtro de busca e categoria
     this.produtosFiltrados$ = combineLatest([
       this.produtos$,
       this.searchControl.valueChanges.pipe(startWith('')),
+      this.categoriaSelecionada.valueChanges.pipe(startWith('TODOS')),
     ]).pipe(
-      map(([produtos, busca]) => {
-        if (!busca?.trim()) {
-          return produtos;
+      map(([produtos, busca, categoria]) => {
+        let filtrados = produtos;
+
+        // Filtrar por categoria
+        if (categoria && categoria !== 'TODOS') {
+          filtrados = filtrados.filter((p) => p.categoria === categoria);
         }
-        const buscaNormalizada = this.removerAcentos(busca.toLowerCase());
-        return produtos.filter((produto) =>
-          this.removerAcentos(produto.nome.toLowerCase()).includes(buscaNormalizada),
-        );
+
+        // Filtrar por busca
+        if (busca?.trim()) {
+          const buscaNormalizada = this.removerAcentos(busca.toLowerCase());
+          filtrados = filtrados.filter((produto) =>
+            this.removerAcentos(produto.nome.toLowerCase()).includes(buscaNormalizada),
+          );
+        }
+
+        return filtrados;
       }),
     );
 
@@ -306,6 +330,10 @@ export class CardapioComponent implements OnInit {
 
   onSearchChange(searchTerm: string): void {
     this.searchControl.setValue(searchTerm);
+  }
+
+  selecionarCategoria(categoria: string): void {
+    this.categoriaSelecionada.setValue(categoria);
   }
 
   irParaCarrinho(): void {

@@ -12,11 +12,11 @@
 
   .sidenav-header {
     padding: var(--space-6) var(--space-4);
-    background-color: var(--primary-red);
+    background-color: var(--primary-green);
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    border-bottom: var(--border-width) solid var(--primary-red-dark);
+    border-bottom: var(--border-width) solid var(--primary-green-dark);
 
     .logo-icon {
       font-size: 28px;
@@ -46,15 +46,15 @@
       }
 
       &.logout-item {
-        color: var(--primary-red);
+        color: var(--primary-green);
         margin-top: var(--space-2);
 
         &:hover {
-          background-color: var(--primary-red-light);
+          background-color: var(--primary-green-light);
         }
 
         mat-icon {
-          color: var(--primary-red);
+          color: var(--primary-green);
         }
       }
     }
@@ -131,13 +131,13 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: var(--primary-red-light);
+        background-color: var(--primary-green-light);
 
         mat-icon {
           font-size: 28px;
           width: 28px;
           height: 28px;
-          color: var(--primary-red);
+          color: var(--primary-green);
         }
 
         &.completed {
@@ -222,7 +222,7 @@
       margin: 0;
 
       mat-icon {
-        color: var(--primary-red);
+        color: var(--primary-green);
       }
     }
   }
@@ -278,7 +278,7 @@
           .total {
             font-size: var(--text-base);
             font-weight: 600;
-            color: var(--primary-red);
+            color: var(--primary-green);
 
             &.completed {
               color: #16a34a;
@@ -295,12 +295,12 @@
     background-color: var(--gray-50);
 
     button {
-      background-color: var(--primary-red) !important;
+      background-color: var(--primary-green) !important;
       color: var(--white) !important;
       font-weight: 500;
 
       &:hover {
-        background-color: var(--primary-red-dark) !important;
+        background-color: var(--primary-green-dark) !important;
       }
 
       mat-icon {

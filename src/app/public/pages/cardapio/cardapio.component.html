@@ -1,18 +1,33 @@
 <app-header
-  currentRoute="cardapio"
-  [totalItens]="totalItens"
+  [nomeCliente]="nomeUsuario"
   [showSearchField]="true"
-  (navClick)="onNavClick($event)"
   (searchChange)="onSearchChange($event)"
 >
 </app-header>
 
-<div class="cardapio-container">
-  <!-- Saudação personalizada -->
-  <div class="welcome-message">
-    <h2>Olá {{ nomeUsuario }}!</h2>
-  </div>
+<app-footer-nav
+  currentRoute="cardapio"
+  [totalItens]="totalItens"
+  (navClick)="onNavClick($event)"
+>
+</app-footer-nav>
 
+<!-- Abas de Categorias com Scroll Horizontal -->
+<div class="categorias-scroll-container">
+  <div class="categorias-tabs">
+    @for (categoria of categorias$ | async; track categoria) {
+      <button
+        class="categoria-tab"
+        [class.ativa]="(categoriaSelecionada.valueChanges | async) === categoria"
+        (click)="selecionarCategoria(categoria)"
+      >
+        {{ categoria }}
+      </button>
+    }
+  </div>
+</div>
+
+<div class="cardapio-container">
   <div class="produtos-grid">
     @for (produto of produtosFiltrados$ | async; track produto.id) {
       <div class="produto-card clean-card">

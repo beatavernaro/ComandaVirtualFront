@@ -2,24 +2,63 @@
 .cardapio-container {
   padding: var(--space-6);
   max-width: 1200px;
-  margin: 80px auto 0;
-  min-height: calc(100vh - 80px);
+  margin: 170px auto 100px;
+  min-height: calc(100vh - 300px);
+  background-color: var(--white) !important;
 }
 
-// Welcome message styles
-.welcome-message {
-  margin-bottom: var(--space-6);
-  text-align: center;
-  
-  h2 {
-    margin: 0;
-    font-size: var(--text-2xl);
+// Categorias Tab Styles
+.categorias-scroll-container {
+  position: fixed;
+  top: 90px;
+  left: 0;
+  right: 0;
+  background-color: var(--white);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  z-index: 999;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.categorias-tabs {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2);
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  min-width: min-content;
+  max-width: 1320px;
+  margin: 0 auto;
+  margin-top: 25px;
+}
+
+.categoria-tab {
+  padding: var(--space-3) var(--space-5);
+  border: var(--border-width) solid var(--border-color);
+  background-color: var(--white);
+  color: var(--gray-700);
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    border-color: var(--primary-green);
+    color: var(--primary-green);
+  }
+
+  &.ativa {
+    background-color: var(--primary-green);
+    color: var(--white);
+    border-color: var(--primary-green);
     font-weight: 600;
-    color: var(--gray-800);
-    background: linear-gradient(135deg, var(--primary-red), var(--primary-red-dark));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
   }
 }
 
@@ -33,12 +72,16 @@
 .produto-card {
   background-color: var(--white);
   border: var(--border-width) solid var(--border-color);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-lg);
-  transition: all 0.15s ease;
+  border-radius: 12px;
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 
   &:hover {
-    box-shadow: var(--shadow-xl);
+    box-shadow: var(--shadow-md);
     border-color: var(--gray-300);
     transform: translateY(-2px);
   }
@@ -48,15 +91,14 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--space-5);
-  gap: var(--space-4);
+  gap: var(--space-3);
+  flex: 1;
 }
 
 .produto-nome {
-  margin: 0;
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--gray-900);
+  font-size: var(--text-xl) !important;
+  font-weight: 600 !important;
+  color: var(--primary-green);
   line-height: 1.4;
   flex: 1;
 }
@@ -64,26 +106,27 @@
 .produto-preco {
   font-size: var(--text-xl);
   font-weight: 700;
-  color: var(--primary-red);
+  color: var(--primary-green);
   white-space: nowrap;
 }
 
 .add-button {
   width: 100%;
-  height: 44px;
-  background-color: var(--primary-red) !important;
+  height: 40px;
+  border-radius: 8px !important;
+  background-color: var(--primary-green) !important;
   color: var(--white) !important;
-  font-weight: 500;
+  font-weight: 600;
   font-size: var(--text-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
   border: none !important;
-  transition: all 0.15s ease;
+  transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: var(--primary-red-dark) !important;
+    background-color: var(--primary-green-dark) !important;
   }
 
   mat-icon {
@@ -178,10 +221,14 @@
 
 // Mobile-first responsive design
 @media (max-width: 480px) {
+  .categorias-scroll-container {
+    top: 110px;
+  }
+
   .cardapio-container {
-    padding: var(--space-6);
-    margin-top: 150px;
-    min-height: calc(100vh - 140px);
+    padding: var(--space-4);
+    margin: 190px auto 100px;
+    min-height: calc(100vh - 320px);
   }
 
   .produtos-grid {
@@ -235,9 +282,13 @@
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
+  .categorias-scroll-container {
+    top: 90px;
+  }
+
   .cardapio-container {
     padding: var(--space-4) var(--space-2) var(--space-2);
-    margin-top: 100px;
+    margin: 170px auto 100px;
   }
 
   .produtos-grid {
@@ -251,12 +302,28 @@
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
+  .categorias-scroll-container {
+    top: 90px;
+  }
+
+  .cardapio-container {
+    margin: 170px auto 100px;
+  }
+
   .produtos-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (min-width: 1025px) {
+  .categorias-scroll-container {
+    top: 90px;
+  }
+
+  .cardapio-container {
+    margin: 170px auto 100px;
+  }
+
   .produtos-grid {
     grid-template-columns: repeat(3, 1fr);
   }

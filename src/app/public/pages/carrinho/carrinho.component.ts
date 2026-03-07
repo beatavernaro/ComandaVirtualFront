@@ -14,8 +14,10 @@ import { Observable } from 'rxjs';
 import { ItemComanda } from '../../../shared/models/item-comanda.model';
 import { Comanda } from '../../../shared/models/comanda.model';
 import { ComandaService } from '../../../core/services/comanda.service';
+import { LocalStorageService } from '../../../core/services/local-storage.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { HeaderComponent } from '../../../shared/components/header/header.component';
+import { FooterNavComponent } from '../../../shared/components/footer-nav/footer-nav.component';
 
 @Component({
   selector: 'app-carrinho',
@@ -31,6 +33,7 @@ import { HeaderComponent } from '../../../shared/components/header/header.compon
     MatSnackBarModule,
     MatTooltipModule,
     HeaderComponent,
+    FooterNavComponent,
   ],
   templateUrl: './carrinho.component.html',
   styleUrl: './carrinho.component.scss',
@@ -39,19 +42,25 @@ export class CarrinhoComponent implements OnInit {
   itensComanda$!: Observable<ItemComanda[]>;
   comandaAtual$!: Observable<Comanda | null>;
   totalItens = 0;
+  nomeUsuario = '';
 
   constructor(
     private comandaService: ComandaService,
+    private localStorageService: LocalStorageService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private router: Router,
   ) {}
 
   ngOnInit(): void {
+    // Obter nome do usuário da sessão
+    const userData = this.localStorageService.getUserData();
+    this.nomeUsuario = userData?.nomeCliente || 'Cliente';
+
     this.itensComanda$ = this.comandaService.itensComanda$;
     this.comandaAtual$ = this.comandaService.comandaAtual$;
 
-    // Calcular total de itens para o header
+    // Calcular total de itens para o footer
     this.itensComanda$.subscribe((itens) => {
       this.totalItens = itens.reduce((acc, item) => acc + item.quantidade, 0);
     });
@@ -198,12 +207,8 @@ export class CarrinhoComponent implements OnInit {
     }
   }
 
-  // Métodos para o HeaderComponent
+  // Métodos para o FooterNavComponent
   onNavClick(route: string): void {
     this.router.navigate([`/${route}`]);
-  }
-
-  getTotalItens(): number {
-    return this.totalItens;
   }
 }

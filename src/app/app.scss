@@ -37,13 +37,13 @@
 }
 
 .btn-primary {
-  background-color: var(--primary-red);
+  background-color: var(--primary-green);
   color: var(--white);
-  border-color: var(--primary-red);
+  border-color: var(--primary-green);
   
   &:hover:not(:disabled) {
-    background-color: var(--primary-red-dark);
-    border-color: var(--primary-red-dark);
+    background-color: var(--primary-green-dark);
+    border-color: var(--primary-green-dark);
   }
   
   &:focus {
@@ -137,7 +137,7 @@
   padding: var(--space-1) var(--space-3);
   font-size: var(--text-xs);
   font-weight: 600;
-  background-color: var(--primary-red);
+  background-color: var(--primary-green);
   color: var(--white);
 }
 
