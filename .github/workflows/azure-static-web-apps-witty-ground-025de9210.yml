@@ -44,3 +44,4 @@ jobs:
           output_location: 'dist/browser'
           app_build_command: 'npm run build -- --configuration hml'
           github_id_token: ${{ steps.idtoken.outputs.result }}
+
