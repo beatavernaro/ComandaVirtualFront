@@ -2,16 +2,15 @@
 .cardapio-container {
   padding: var(--space-6);
   max-width: 1200px;
-  margin: -12px auto 100px;
+  margin: 170px auto 100px;
   min-height: calc(100vh - 300px);
   background-color: var(--white) !important;
 }
 
 // Categorias Tab Styles
 .categorias-scroll-container {
-  position: sticky;
+  position: fixed;
   top: 90px;
-  margin-top: 90px;
   left: 0;
   right: 0;
   background-color: var(--white);
@@ -35,6 +34,7 @@
   min-width: min-content;
   max-width: 1320px;
   margin: 0 auto;
+  margin-top: 25px;
 }
 
 .categoria-tab {
@@ -42,7 +42,7 @@
   border: var(--border-width) solid var(--border-color);
   background-color: var(--white);
   color: var(--gray-700);
-  border-radius: 20px;
+  border-radius: 12px;
   font-weight: 500;
   font-size: var(--text-sm);
   cursor: pointer;
@@ -72,12 +72,16 @@
 .produto-card {
   background-color: var(--white);
   border: var(--border-width) solid var(--border-color);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-lg);
-  transition: all 0.15s ease;
+  border-radius: 12px;
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 
   &:hover {
-    box-shadow: var(--shadow-xl);
+    box-shadow: var(--shadow-md);
     border-color: var(--gray-300);
     transform: translateY(-2px);
   }
@@ -87,15 +91,14 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--space-5);
-  gap: var(--space-4);
+  gap: var(--space-3);
+  flex: 1;
 }
 
 .produto-nome {
-  margin: 0;
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--gray-900);
+  font-size: var(--text-xl) !important;
+  font-weight: 600 !important;
+  color: var(--primary-green);
   line-height: 1.4;
   flex: 1;
 }
@@ -109,17 +112,18 @@
 
 .add-button {
   width: 100%;
-  height: 44px;
+  height: 40px;
+  border-radius: 8px !important;
   background-color: var(--primary-green) !important;
   color: var(--white) !important;
-  font-weight: 500;
+  font-weight: 600;
   font-size: var(--text-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
   border: none !important;
-  transition: all 0.15s ease;
+  transition: background-color 0.2s ease;
 
   &:hover {
     background-color: var(--primary-green-dark) !important;
@@ -219,12 +223,11 @@
 @media (max-width: 480px) {
   .categorias-scroll-container {
     top: 110px;
-    margin-top: 135px;
   }
 
   .cardapio-container {
     padding: var(--space-4);
-    margin: -10px auto 100px;
+    margin: 190px auto 100px;
     min-height: calc(100vh - 320px);
   }
 
@@ -281,12 +284,11 @@
 @media (min-width: 481px) and (max-width: 768px) {
   .categorias-scroll-container {
     top: 90px;
-    margin-top: 90px;
   }
 
   .cardapio-container {
     padding: var(--space-4) var(--space-2) var(--space-2);
-    margin: 0 auto 100px;
+    margin: 170px auto 100px;
   }
 
   .produtos-grid {
@@ -302,11 +304,10 @@
 @media (min-width: 769px) and (max-width: 1024px) {
   .categorias-scroll-container {
     top: 90px;
-    margin-top: 90px;
   }
 
   .cardapio-container {
-    margin: 0 auto 100px;
+    margin: 170px auto 100px;
   }
 
   .produtos-grid {
@@ -317,11 +318,10 @@
 @media (min-width: 1025px) {
   .categorias-scroll-container {
     top: 90px;
-    margin-top: 90px;
   }
 
   .cardapio-container {
-    margin: 0 auto 100px;
+    margin: 170px auto 100px;
   }
 
   .produtos-grid {

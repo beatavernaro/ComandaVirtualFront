@@ -26,7 +26,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
       <mat-toolbar class="custom-toolbar">
         <div class="toolbar-content">
           <div class="header-greeting">
-            <h2 class="greeting-text">Olá, {{ nomeCliente }}</h2>
+            <h2 class="greeting-text">{{ titulo || 'Olá, ' + nomeCliente }}</h2>
           </div>
 
           @if (showSearchField) {
@@ -48,6 +48,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 })
 export class HeaderComponent {
   @Input() nomeCliente: string = 'Cliente';
+  @Input() titulo: string = '';
   @Input() showSearchField: boolean = true;
   @Output() searchChange = new EventEmitter<string>();
 

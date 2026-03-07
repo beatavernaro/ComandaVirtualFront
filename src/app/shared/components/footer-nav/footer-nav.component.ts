@@ -33,10 +33,12 @@ import { MatBadgeModule } from '@angular/material/badge';
           (click)="onNavClick('carrinho')"
         >
           <mat-icon>shopping_cart</mat-icon>
-          <span class="btn-label">Comanda</span>
-          @if (totalItens > 0) {
-            <span class="badge">{{ totalItens }}</span>
-          }
+          <span class="btn-label-wrapper">
+            <span class="btn-label">Comanda</span>
+            @if (totalItens > 0) {
+              <span class="badge">{{ totalItens }}</span>
+            }
+          </span>
         </button>
       </div>
     </div>
